@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Tải Icon PWA FinLock</title>
+    <style>
+        body {
+            background-color: #020617;
+            color: white;
+            font-family: system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .preview {
+            width: 192px;
+            height: 192px;
+            border-radius: 40px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        button {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            font-size: 18px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            margin-top: 30px;
+            transition: 0.2s;
+        }
+
+        button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 20px rgba(16, 185, 129, 0.4);
+        }
+
+        p {
+            color: #94a3b8;
+            margin-top: 15px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <h2>🔥 PWA Icon Exporter</h2>
+    <img id="preview" class="preview" alt="Icon Preview">
+    <p>Trình duyệt tự động render ảnh chất lượng cao nhất</p>
+
+    <button onclick="downloadAll()">⬇️ Tải bộ 3 file PNG ngay</button>
+
+    <script>
+        // Mã gốc SVG của Logo FinLock
+        const svgCode = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0B1121" />
+      <stop offset="100%" stop-color="#020617" />
+    </linearGradient>
+    <linearGradient id="brandGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FF6B00" />
+      <stop offset="100%" stop-color="#FF0055" />
+    </linearGradient>
+    <linearGradient id="glassGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="rgba(255, 255, 255, 0.12)" />
+      <stop offset="100%" stop-color="rgba(255, 255, 255, 0.03)" />
+    </linearGradient>
+    <filter id="neonGlow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="12" result="blur" />
+      <feMerge>
+        <feMergeNode in="blur" />
+        <feMergeNode in="SourceGraphic" />
+      </feMerge>
+    </filter>
+    <filter id="dropShadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="15" stdDeviation="20" flood-color="#000000" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+
+  <rect width="512" height="512" fill="url(#bgGrad)" />
+  <circle cx="256" cy="256" r="180" fill="url(#brandGrad)" opacity="0.15" filter="url(#neonGlow)" />
+
+  <rect x="106" y="136" width="300" height="240" rx="60" fill="url(#glassGrad)" stroke="rgba(255,255,255,0.15)" stroke-width="3" filter="url(#dropShadow)" />
+  
+  <circle cx="156" cy="186" r="14" fill="#10B981" />
+
+  <path d="M 350 110 C 375 110 395 135 395 160 C 395 190 365 210 350 210 C 320 210 315 180 325 160 C 335 140 340 110 350 110 Z" fill="url(#brandGrad)" filter="url(#neonGlow)" />
+  <path d="M 350 145 C 360 145 370 160 370 175 C 370 190 355 200 350 200 C 340 200 335 185 340 175 C 345 165 345 145 350 145 Z" fill="#FFE500" />
+
+  <circle cx="256" cy="266" r="75" fill="#020617" stroke="url(#brandGrad)" stroke-width="8" filter="url(#dropShadow)" />
+  <circle cx="256" cy="266" r="55" fill="none" stroke="#10B981" stroke-width="4" stroke-dasharray="8 6" />
+  
+  <path d="M226 286 L246 256 L266 266 L296 236" stroke="#10B981" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  <path d="M276 236 L296 236 L296 256" stroke="#10B981" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+</svg>`;
+
+        // Tạo URL từ SVG để render
+        const blob = new Blob([svgCode], { type: 'image/svg+xml;charset=utf-8' });
+        const url = URL.createObjectURL(blob);
+        document.getElementById('preview').src = url;
+
+        // Hàm xuất ảnh PNG
+        function downloadAll() {
+            const img = new Image();
+            img.onload = () => {
+                const sizes = [
+                    { s: 192, name: '192.png' },
+                    { s: 512, name: '512.png' },
+                    { s: 512, name: 'maskable-512.png' }
+                ];
+
+                sizes.forEach((item, index) => {
+                    setTimeout(() => {
+                        const canvas = document.createElement('canvas');
+                        canvas.width = item.s;
+                        canvas.height = item.s;
+                        const ctx = canvas.getContext('2d');
+                        ctx.drawImage(img, 0, 0, item.s, item.s);
+
+                        // Trigger tải xuống file
+                        const a = document.createElement('a');
+                        a.download = item.name;
+                        a.href = canvas.toDataURL('image/png');
+                        a.click();
+                    }, index * 500); // Cho trình duyệt nghỉ 0.5s giữa các lần tải để không bị chặn
+                });
+            };
+            img.src = url;
+        }
+    </script>
+</body>
+
+</html>

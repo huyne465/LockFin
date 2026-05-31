@@ -1,0 +1,6 @@
+# Root env (chứa secrets, không commit)
+.env
+
+# OS
+.DS_Store
+Thumbs.db

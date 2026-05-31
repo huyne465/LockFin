@@ -1,0 +1,45 @@
+name: lockfin
+
+services:
+  # ─────────────────────────────
+  # Backend: NestJS
+  # ─────────────────────────────
+  backend:
+    build:
+      context: ./LockFin-BE
+      dockerfile: Dockerfile
+    container_name: lockfin-be
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    env_file:
+      - ./LockFin-BE/.env
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:3000/api/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  # ─────────────────────────────
+  # Frontend: Next.js
+  # ─────────────────────────────
+  frontend:
+    build:
+      context: ./LockFin-FE
+      dockerfile: Dockerfile
+      args:
+        # NEXT_PUBLIC_ vars phải được inject lúc build
+        NEXT_PUBLIC_SUPABASE_URL: ${NEXT_PUBLIC_SUPABASE_URL}
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: ${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+        # FE gọi BE qua browser → dùng localhost:3000
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:3000/api}
+    container_name: lockfin-fe
+    restart: unless-stopped
+    ports:
+      - "3001:3000"
+    env_file:
+      - ./LockFin-FE/.env.local
+    depends_on:
+      backend:
+        condition: service_healthy
