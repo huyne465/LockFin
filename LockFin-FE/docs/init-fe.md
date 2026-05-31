@@ -239,7 +239,7 @@ Feed công khai (chỉ `is_private: false`), sort `created_at DESC`, kèm join `
 
 **Pagination**: `limit` (default 20), `offset` (default 0) → dùng cho infinite scroll.
 
-> ⚠️ **Friend filter chưa có ở backend.** Hiện feed trả về post public của TOÀN BỘ user. Khi friendships module xong, endpoint này sẽ tự động filter — FE không phải đổi gì.
+> ✅ **Friend filter đã có ở backend.** `GET /posts/feed` chỉ trả về post public của chính user + những người là bạn (`friendships.status = ACCEPTED`). Cần gửi Bearer token. Xem mục Friends API bên dưới để quản lý quan hệ bạn bè.
 
 #### `GET /posts/stats?month=YYYY-MM`
 

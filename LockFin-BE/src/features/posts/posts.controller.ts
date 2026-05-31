@@ -18,10 +18,11 @@ export class PostsController {
 
   @Get('feed')
   feed(
+    @CurrentUser() user: AuthUser,
     @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
     @Query('offset', new DefaultValuePipe(0), ParseIntPipe) offset: number,
   ) {
-    return this.service.feed(limit, offset);
+    return this.service.feed(user.id, limit, offset);
   }
 
   @Get('mine')

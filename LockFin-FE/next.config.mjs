@@ -4,7 +4,10 @@ const withPWA = nextPwa({
   dest: 'public',
   register: true,
   skipWaiting: true,
-  disable: process.env.NODE_ENV === 'development',
+  // Hard-disabled: the service worker was serving stale JS + cached API
+  // responses, freezing the UI and hiding new code. Re-enable only after adding
+  // runtimeCaching that excludes the (authenticated, cross-origin) backend API.
+  disable: true,
   fallbacks: { document: '/offline' },
 });
 

@@ -39,3 +39,27 @@ export interface MonthStat {
   icon: string;
   total: number;
 }
+
+/** A public, lightweight projection of another user. */
+export interface ProfileSummary {
+  id: string;
+  username: string | null;
+  display_name: string | null;
+  avatar_url: string | null;
+}
+
+export type FriendshipStatus = 'PENDING' | 'ACCEPTED' | 'BLOCKED';
+
+export interface Friendship {
+  id: string;
+  requester_id: string;
+  receiver_id: string;
+  status: FriendshipStatus;
+  created_at: string;
+}
+
+/** A friendship row with the other party's profile joined (per endpoint). */
+export interface FriendshipWithProfile extends Friendship {
+  requester?: ProfileSummary | null;
+  receiver?: ProfileSummary | null;
+}

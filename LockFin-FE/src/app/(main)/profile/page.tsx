@@ -1,8 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { useRouter } from 'next/navigation';
-import { LogOut } from 'lucide-react';
+import Link from 'next/link';
+import { ChevronRight, LogOut, Users } from 'lucide-react';
 import { useMonthStats, useProfile } from '@/lib/queries';
 import { createSupabaseBrowser } from '@/lib/supabase/client';
 import { currentMonth } from '@/lib/format';
@@ -24,16 +24,18 @@ function monthOptions(): string[] {
 }
 
 export default function ProfilePage() {
-  const router = useRouter();
   const [month, setMonth] = useState(currentMonth());
   const profile = useProfile();
   const stats = useMonthStats(month);
 
   async function signOut() {
     const supabase = createSupabaseBrowser();
-    await supabase.auth.signOut();
-    router.replace('/login');
-    router.refresh();
+    // `local` scope clears the cookies without a network revoke call, which
+    // would otherwise fail (and skip clearing) when the token is already expired.
+    await supabase.auth.signOut({ scope: 'local' });
+    // Hard navigation forces middleware to re-run with the cleared cookies and
+    // drops any stale React Query / client state from the signed-in session.
+    window.location.assign('/login');
   }
 
   return (
@@ -66,7 +68,18 @@ export default function ProfilePage() {
         )}
       </div>
 
-      <div className="mt-6">
+      <Link
+        href="/friends"
+        className="mt-6 flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3.5 transition-colors duration-fast hover:bg-surface-muted"
+      >
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Users className="h-5 w-5" />
+        </span>
+        <span className="flex-1 font-medium text-text">Bạn bè</span>
+        <ChevronRight className="h-5 w-5 text-text-muted" />
+      </Link>
+
+      <div className="mt-4">
         <Button variant="outline" className="w-full" onClick={signOut}>
           <LogOut className="h-4 w-4" /> Đăng xuất
         </Button>

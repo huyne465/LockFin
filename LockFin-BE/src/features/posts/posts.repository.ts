@@ -44,11 +44,16 @@ export class PostsRepository {
     return data as PostRow;
   }
 
-  /** Public feed (excludes private posts). */
-  async feed(limit = 20, offset = 0): Promise<PostRow[]> {
+  /**
+   * Feed for a user: public posts authored by the given set of users
+   * (their accepted friends plus themselves). Private posts are excluded.
+   */
+  async feed(authorIds: string[], limit = 20, offset = 0): Promise<PostRow[]> {
+    if (authorIds.length === 0) return [];
     const { data, error } = await this.supabase.admin
       .from(this.TABLE)
       .select('*, profiles!inner(id, username, avatar_url), categories(id, name, icon, color_hex, type)')
+      .in('user_id', authorIds)
       .eq('is_private', false)
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);

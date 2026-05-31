@@ -13,6 +13,13 @@ export async function api<T>(path: string, init?: RequestInit): Promise<T> {
       ...(init?.headers ?? {}),
     },
   });
+  if (res.status === 401) {
+    // Session expired or invalid (refresh token dead). Clear it and bounce to
+    // login instead of surfacing a generic error to the user.
+    await supabase.auth.signOut({ scope: 'local' });
+    if (typeof window !== 'undefined') window.location.assign('/login');
+    throw new Error('Phiên đăng nhập đã hết hạn');
+  }
   if (!res.ok) {
     let message = 'Request failed';
     try { message = (await res.json())?.message ?? message; } catch { /* noop */ }

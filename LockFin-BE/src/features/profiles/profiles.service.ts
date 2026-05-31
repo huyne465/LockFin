@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { ProfilesRepository, ProfileRow } from './profiles.repository';
+import { ProfilesRepository, ProfileRow, ProfileSummary } from './profiles.repository';
 
 @Injectable()
 export class ProfilesService {
@@ -7,6 +7,11 @@ export class ProfilesService {
 
   getProfile(userId: string): Promise<ProfileRow> {
     return this.repo.findById(userId);
+  }
+
+  /** Find other users to send a friend request to. */
+  searchProfiles(userId: string, query: string): Promise<ProfileSummary[]> {
+    return this.repo.search(query ?? '', userId);
   }
 
   /**

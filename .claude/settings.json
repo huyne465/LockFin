@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cp /tmp/fr_test.js /d/LockFin/LockFin-BE/fr_test.js)",
+      "Bash(node fr_test.js)",
+      "Bash(cat src/lib/api.ts)",
+      "Bash(cat src/lib/supabase*.ts)",
+      "Bash(echo \"exit: $?\")",
+      "Bash(curl -s -m 5 http://localhost:3000/api/health)",
+      "Bash(curl -s -m 5 -i -X OPTIONS http://localhost:3000/api/profiles/me -H 'Origin: http://localhost:3001' -H 'Access-Control-Request-Method: GET' -H 'Access-Control-Request-Headers: authorization,content-type')"
+    ]
+  }
+}

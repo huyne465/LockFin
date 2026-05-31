@@ -1,6 +1,9 @@
-import { useQuery, useInfiniteQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
 import { api } from './api';
-import type { Profile, Category, FeedPost, MonthStat, CategoryType } from './types';
+import type {
+  Profile, Category, FeedPost, MonthStat, CategoryType,
+  Friendship, FriendshipWithProfile, ProfileSummary,
+} from './types';
 
 export const qk = {
   profile: ['profile', 'me'] as const,
@@ -8,6 +11,10 @@ export const qk = {
   feed: ['feed'] as const,
   mine: (month: string) => ['posts', 'mine', month] as const,
   stats: (month: string) => ['stats', month] as const,
+  profileSearch: (q: string) => ['profiles', 'search', q] as const,
+  friends: ['friends'] as const,
+  friendsIncoming: ['friends', 'incoming'] as const,
+  friendsOutgoing: ['friends', 'outgoing'] as const,
 };
 
 export const useProfile = () =>
@@ -53,6 +60,67 @@ export function useCreatePost() {
       qc.invalidateQueries({ queryKey: ['posts', 'mine'] });
       qc.invalidateQueries({ queryKey: ['stats'] });
     },
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Friends                                                             */
+/* ------------------------------------------------------------------ */
+
+/** Search other users to add as friends. Disabled until the query is non-empty. */
+export function useProfileSearch(query: string) {
+  const q = query.trim();
+  return useQuery({
+    queryKey: qk.profileSearch(q),
+    queryFn: () => api<ProfileSummary[]>(`/profiles/search?q=${encodeURIComponent(q)}`),
+    enabled: q.length > 0,
+    staleTime: 10_000,
+  });
+}
+
+export const useFriends = () =>
+  useQuery({ queryKey: qk.friends, queryFn: () => api<FriendshipWithProfile[]>('/friends') });
+
+export const useIncomingRequests = () =>
+  useQuery({ queryKey: qk.friendsIncoming, queryFn: () => api<FriendshipWithProfile[]>('/friends/requests/incoming') });
+
+export const useOutgoingRequests = () =>
+  useQuery({ queryKey: qk.friendsOutgoing, queryFn: () => api<FriendshipWithProfile[]>('/friends/requests/outgoing') });
+
+/** A single friendship change ripples across all three lists + the shared feed. */
+function invalidateFriendData(qc: QueryClient) {
+  qc.invalidateQueries({ queryKey: qk.friends });
+  qc.invalidateQueries({ queryKey: qk.friendsIncoming });
+  qc.invalidateQueries({ queryKey: qk.friendsOutgoing });
+  qc.invalidateQueries({ queryKey: qk.feed });
+}
+
+export function useSendFriendRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (receiverId: string) =>
+      api<Friendship>('/friends/requests', {
+        method: 'POST',
+        body: JSON.stringify({ receiver_id: receiverId }),
+      }),
+    onSuccess: () => invalidateFriendData(qc),
+  });
+}
+
+export function useAcceptFriendRequest() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api<Friendship>(`/friends/${id}/accept`, { method: 'PATCH' }),
+    onSuccess: () => invalidateFriendData(qc),
+  });
+}
+
+/** Decline an incoming request, cancel a sent one, or unfriend — all DELETE /friends/:id. */
+export function useRemoveFriendship() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api<void>(`/friends/${id}`, { method: 'DELETE' }),
+    onSuccess: () => invalidateFriendData(qc),
   });
 }
 

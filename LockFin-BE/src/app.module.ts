@@ -6,6 +6,7 @@ import { SupabaseAuthGuard } from './common/guards/supabase-auth.guard';
 import { ProfilesModule } from './features/profiles/profiles.module';
 import { CategoriesModule } from './features/categories/categories.module';
 import { PostsModule } from './features/posts/posts.module';
+import { FriendsModule } from './features/friends/friends.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -15,6 +16,7 @@ import { HealthController } from './health.controller';
     ProfilesModule,
     CategoriesModule,
     PostsModule,
+    FriendsModule,
   ],
   controllers: [HealthController],
   providers: [

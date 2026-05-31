@@ -2,8 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 import Image from 'next/image';
-import { Flame } from 'lucide-react';
-import { useFeed, useProfile } from '@/lib/queries';
+import Link from 'next/link';
+import { Flame, UserPlus } from 'lucide-react';
+import { useFeed, useIncomingRequests, useProfile } from '@/lib/queries';
 import { formatRelative, formatVND } from '@/lib/format';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -11,6 +12,8 @@ import { Skeleton } from '@/components/ui/Skeleton';
 export default function FeedPage() {
   const profile = useProfile();
   const feed = useFeed();
+  const incoming = useIncomingRequests();
+  const pendingCount = incoming.data?.length ?? 0;
   const sentinel = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -40,9 +43,23 @@ export default function FeedPage() {
           </div>
           <span className="font-medium">{profile.data?.display_name ?? '…'}</span>
         </div>
-        <div className="flex items-center gap-1 rounded-full bg-surface-muted px-3 py-1.5 text-streak">
-          <Flame className="h-4 w-4" />
-          <span className="numeric font-semibold">{profile.data?.current_streak ?? 0}</span>
+        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 rounded-full bg-surface-muted px-3 py-1.5 text-streak">
+            <Flame className="h-4 w-4" />
+            <span className="numeric font-semibold">{profile.data?.current_streak ?? 0}</span>
+          </div>
+          <Link
+            href="/friends"
+            aria-label="Bạn bè"
+            className="relative flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-text-secondary transition-transform duration-fast active:scale-90"
+          >
+            <UserPlus className="h-[1.15rem] w-[1.15rem]" />
+            {pendingCount > 0 && (
+              <span className="numeric absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-primary px-1 text-[10px] font-bold text-text-inverse">
+                {pendingCount}
+              </span>
+            )}
+          </Link>
         </div>
       </header>
 
@@ -53,7 +70,7 @@ export default function FeedPage() {
       )}
 
       {!feed.isLoading && posts.length === 0 && (
-        <EmptyState icon="📷" title="Chưa có post nào" hint="Hãy chụp bức ảnh chi tiêu đầu tiên để mở khoá streak!" />
+        <EmptyState icon="📷" title="Chưa có post nào" hint="Chụp ảnh chi tiêu đầu tiên, hoặc kết bạn để xem feed của bạn bè!" />
       )}
 
       <ul className="space-y-6 p-4">
