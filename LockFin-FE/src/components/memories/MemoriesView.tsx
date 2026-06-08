@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Flame, Heart } from 'lucide-react';
-import { useMyPosts, useProfile } from '@/lib/queries';
+import { ChevronLeft, ChevronRight, Flame, Heart, Plus } from 'lucide-react';
+import { useAlbums, useMyPosts, useProfile } from '@/lib/queries';
 import { currentMonth } from '@/lib/format';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { FeedPost } from '@/lib/types';
+import { AlbumCard } from '@/components/album/AlbumCard';
+import { AlbumForm } from '@/components/album/AlbumForm';
 import { MemoryCalendar } from './MemoryCalendar';
 import { MemoryLightbox } from './MemoryLightbox';
 
@@ -20,9 +22,12 @@ function shiftMonth(month: string, delta: number) {
 export function MemoriesView() {
   const [month, setMonth] = useState(currentMonth());
   const [dayPosts, setDayPosts] = useState<FeedPost[] | null>(null);
+  const [creatingAlbum, setCreatingAlbum] = useState(false);
 
   const profile = useProfile();
   const posts = useMyPosts(month);
+  const albums = useAlbums();
+  const albumList = albums.data ?? [];
   const list = posts.data ?? [];
   const isCurrent = month === currentMonth();
 
@@ -64,6 +69,43 @@ export function MemoriesView() {
             ))}
           </div>
         )}
+
+        {/* Albums */}
+        <section className="mb-5">
+          <div className="mb-2.5 flex items-center justify-between px-1">
+            <h2 className="font-display text-base font-bold text-text">Album 🧳</h2>
+            <button
+              type="button"
+              onClick={() => setCreatingAlbum(true)}
+              className="flex items-center gap-1 rounded-full bg-primary px-3 py-1.5 text-xs font-semibold text-text-inverse shadow-soft transition-transform duration-fast active:scale-95"
+            >
+              <Plus className="h-3.5 w-3.5" /> Tạo album
+            </button>
+          </div>
+
+          {albums.isLoading ? (
+            <div className="grid grid-cols-2 gap-3">
+              <Skeleton className="h-44 w-full rounded-2xl" />
+              <Skeleton className="h-44 w-full rounded-2xl" />
+            </div>
+          ) : albumList.length === 0 ? (
+            <button
+              type="button"
+              onClick={() => setCreatingAlbum(true)}
+              className="flex w-full flex-col items-center gap-1 rounded-2xl border border-dashed border-border bg-surface-muted/40 px-6 py-7 text-center transition-colors duration-fast hover:border-primary/40"
+            >
+              <span className="text-3xl">🧳</span>
+              <span className="text-sm font-semibold text-text">Tạo album cho chuyến đi đầu tiên</span>
+              <span className="text-xs text-text-muted">Gom chi tiêu một chuyến vào chung một nơi.</span>
+            </button>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {albumList.map((a) => (
+                <AlbumCard key={a.id} album={a} />
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Month switcher */}
         <div className="mb-4 flex items-center justify-center gap-4">
@@ -113,6 +155,7 @@ export function MemoriesView() {
       </div>
 
       {dayPosts && <MemoryLightbox posts={dayPosts} onClose={() => setDayPosts(null)} />}
+      {creatingAlbum && <AlbumForm onClose={() => setCreatingAlbum(false)} />}
     </div>
   );
 }

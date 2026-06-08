@@ -7,6 +7,7 @@ import {
   IsString,
   IsUUID,
   MaxLength,
+  ValidateIf,
 } from 'class-validator';
 
 export class CreatePostDto {
@@ -33,4 +34,14 @@ export class CreatePostDto {
   @IsOptional()
   @IsBoolean()
   is_private?: boolean;
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    description: 'Có giá trị ⇒ post vào album đó; omit/null ⇒ lên pool.',
+  })
+  @IsOptional()
+  @ValidateIf((_o, v) => v !== null && v !== undefined)
+  @IsUUID()
+  album_id?: string | null;
 }

@@ -10,6 +10,7 @@ export interface PostRow {
   amount: number;
   note: string | null;
   is_private: boolean;
+  album_id: string | null;
   created_at: string;
 }
 
@@ -37,6 +38,7 @@ export class PostsRepository {
         amount: dto.amount,
         note: dto.note ?? null,
         is_private: dto.is_private ?? false,
+        album_id: dto.album_id ?? null,
       })
       .select('*')
       .single();
@@ -55,6 +57,7 @@ export class PostsRepository {
       .select('*, profiles!inner(id, username, avatar_url), categories(id, name, icon, color_hex, type)')
       .in('user_id', authorIds)
       .eq('is_private', false)
+      .is('album_id', null) // posts filed into an album are viewed per-album, not in the pool feed
       .order('created_at', { ascending: false })
       .range(offset, offset + limit - 1);
     if (error) throw error;

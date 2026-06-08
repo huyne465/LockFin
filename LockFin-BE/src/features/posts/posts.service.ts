@@ -4,6 +4,7 @@ import { CreatePostDto } from './dto/create-post.dto';
 import { ProfilesService } from '../profiles/profiles.service';
 import { FriendsRepository } from '../friends/friends.repository';
 import { BudgetsService } from '../budgets/budgets.service';
+import { AlbumsService } from '../albums/albums.service';
 
 @Injectable()
 export class PostsService {
@@ -12,9 +13,13 @@ export class PostsService {
     private readonly profiles: ProfilesService,
     private readonly friends: FriendsRepository,
     private readonly budgets: BudgetsService,
+    private readonly albums: AlbumsService,
   ) {}
 
   async create(userId: string, dto: CreatePostDto) {
+    // Reject attaching a post to an album the caller doesn't own (404/403).
+    if (dto.album_id) await this.albums.assertOwned(userId, dto.album_id);
+
     const post = await this.repo.create(userId, dto);
     await this.profiles.updateStreak(userId);
     // Attach a live budget snapshot so the client can warn immediately. Never

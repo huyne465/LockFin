@@ -28,10 +28,40 @@ export interface FeedPost {
   note: string | null;
   is_private: boolean;
   created_at: string;
+  /** null ⇒ post nằm ở pool (feed); có giá trị ⇒ thuộc 1 album. */
+  album_id?: string | null;
   profiles: { id: string; username: string; avatar_url: string | null };
   categories: Pick<Category, 'id' | 'name' | 'icon' | 'color_hex' | 'type'>;
   /** Present when the new expense touches one or more budgets (optional, backward-compatible). */
   budget_impact?: BudgetImpact[];
+}
+
+/* ------------------------------------------------------------------ */
+/* Albums                                                              */
+/* ------------------------------------------------------------------ */
+
+export interface Album {
+  id: string;
+  user_id: string;
+  name: string;
+  description: string | null;
+  cover_photo_url: string | null;   // BE đã fallback ảnh post mới nhất
+  is_public: boolean;
+  budget_amount: number | null;
+  start_date: string | null;        // 'YYYY-MM-DD'
+  end_date: string | null;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface AlbumSummary extends Album {
+  post_count: number;
+  spent: number;
+  remaining: number | null;         // null nếu chưa đặt budget
+}
+
+export interface AlbumDetail extends AlbumSummary {
+  posts: FeedPost[];                // post trong album, mới nhất trước
 }
 
 export type BudgetPeriod = 'DAY' | 'MONTH' | 'YEAR';
