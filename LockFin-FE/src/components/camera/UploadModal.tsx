@@ -5,21 +5,25 @@ import { useRouter } from 'next/navigation';
 import { Lock, LockOpen, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { createSupabaseBrowser } from '@/lib/supabase/client';
-import { useCategories, useCreatePost, useProfile } from '@/lib/queries';
+import { useBudgets, useCategories, useCreatePost, useProfile } from '@/lib/queries';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
-import type { Category, CategoryType } from '@/lib/types';
+import { formatVND } from '@/lib/format';
+import type { BudgetPeriod, Category, CategoryType } from '@/lib/types';
 
 const TYPE_LABEL: Record<CategoryType, string> = {
   EXPENSE: 'Chi tiêu', INCOME: 'Thu nhập', SAVING: 'Tiết kiệm', GOAL: 'Mục tiêu',
 };
+
+const PERIOD_LABEL: Record<BudgetPeriod, string> = { DAY: 'ngày', MONTH: 'tháng', YEAR: 'năm' };
 
 export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; previewUrl: string; onClose: () => void }) {
   const router = useRouter();
   const push = useToast((s) => s.push);
   const { data: categories } = useCategories();
   const { data: profile } = useProfile();
+  const { data: budgets } = useBudgets();
   const createPost = useCreatePost();
 
   const [categoryId, setCategoryId] = useState<string | null>(null);
@@ -33,6 +37,24 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
     (categories ?? []).forEach((c) => g[c.type].push(c));
     return g;
   }, [categories]);
+
+  const amt = Number(amount.replace(/[^\d]/g, '')) || 0;
+  const selectedCat = categories?.find((c) => c.id === categoryId) ?? null;
+
+  // Budgets this expense will hit. A category-scoped budget matches its own
+  // category; total budgets (category_id null) only count EXPENSE posts. Income/
+  // saving/goal categories therefore deduct from nothing.
+  const affected = useMemo(() => {
+    if (!categoryId || selectedCat?.type !== 'EXPENSE') return [];
+    const order = { DAY: 0, MONTH: 1, YEAR: 2 } as const;
+    return (budgets ?? [])
+      .filter((b) => b.category_id === categoryId || b.category_id === null)
+      // category-scoped first, then total; each sorted day → month → year
+      .sort((a, b) =>
+        (a.category_id === null ? 1 : 0) - (b.category_id === null ? 1 : 0) ||
+        order[a.period_type] - order[b.period_type],
+      );
+  }, [budgets, categoryId, selectedCat]);
 
   async function onSubmit() {
     if (!categoryId) return push('Chọn category trước nhé', 'error');
@@ -50,14 +72,23 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
       if (upErr) throw upErr;
       const { data: { publicUrl } } = supabase.storage.from('posts').getPublicUrl(fileName);
 
-      await createPost.mutateAsync({
+      const post = await createPost.mutateAsync({
         category_id: categoryId,
         photo_url: publicUrl,
         amount: amt,
         note: note.trim() || undefined,
         is_private: isPrivate,
       });
-      push('Đã up lên 🔥', 'success');
+
+      const over = post.budget_impact?.find((b) => b.is_over);
+      const month = post.budget_impact?.find((b) => b.period_type === 'MONTH');
+      if (over) {
+        push(`⚠️ Vượt ngân sách ${PERIOD_LABEL[over.period_type]} ${formatVND(-over.remaining)} rồi!`, 'error');
+      } else if (month) {
+        push(`Đã up 🔥 — còn ${formatVND(month.remaining)} trong ngân sách tháng`, 'success');
+      } else {
+        push('Đã up lên 🔥', 'success');
+      }
       router.push('/feed');
     } catch (e: any) {
       push(e?.message ?? 'Up thất bại — thử lại nhé', 'error');
@@ -114,6 +145,46 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
             )
           ))}
         </div>
+
+        {affected.length > 0 && (
+          <div className="mt-5 rounded-xl border border-border bg-surface-muted/60 p-3">
+            <p className="mb-2 text-xs font-medium uppercase tracking-wide text-text-muted">
+              {amt > 0 ? 'Khoản này sẽ trừ vào' : 'Đang theo dõi quỹ'}
+            </p>
+            <ul className="space-y-1.5">
+              {affected.map((b) => {
+                const after = b.remaining - amt; // số còn lại sau khi trừ khoản đang nhập
+                const over = after < 0;
+                const name = b.category?.name ?? 'Tổng chi tiêu';
+                const icon = b.category?.icon ?? '💰';
+                return (
+                  <li key={b.id} className="flex items-center justify-between gap-2 text-sm">
+                    <span className="flex min-w-0 items-center gap-1.5 text-text">
+                      <span>{icon}</span>
+                      <span className="truncate">{name}</span>
+                      <span className="shrink-0 text-text-muted">· {PERIOD_LABEL[b.period_type]}</span>
+                    </span>
+                    <span className={clsx('numeric shrink-0 font-medium', over ? 'text-danger' : 'text-text-secondary')}>
+                      {over ? `⚠️ Vượt ${formatVND(-after)}` : `còn ${formatVND(after)}`}
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
+
+        {/* EXPENSE category selected but no budget yet → nudge the user to create one. */}
+        {affected.length === 0 && selectedCat?.type === 'EXPENSE' && (
+          <button
+            type="button"
+            onClick={() => router.push('/budgets')}
+            className="mt-5 flex w-full items-center justify-between rounded-xl border border-dashed border-border bg-surface-muted/40 px-3 py-2.5 text-sm text-text-secondary transition-colors duration-fast hover:border-primary/40"
+          >
+            <span>Chưa có quỹ cho mục «{selectedCat.name}»</span>
+            <span className="font-medium text-primary">Đặt ngân sách →</span>
+          </button>
+        )}
 
         <label className="mt-5 block text-sm font-medium text-text-secondary">Ghi chú (tuỳ chọn)</label>
         <Input

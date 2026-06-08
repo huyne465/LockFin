@@ -2,10 +2,10 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight, LogOut, Users } from 'lucide-react';
-import { useMonthStats, useProfile } from '@/lib/queries';
+import { ChevronRight, LogOut, Users, Wallet } from 'lucide-react';
+import { useBudgets, useMonthStats, useProfile } from '@/lib/queries';
 import { createSupabaseBrowser } from '@/lib/supabase/client';
-import { currentMonth } from '@/lib/format';
+import { currentMonth, formatVND } from '@/lib/format';
 import { StreakCard } from '@/components/profile/StreakCard';
 import { MonthDonut } from '@/components/profile/MonthDonut';
 import { CategoryBreakdown } from '@/components/profile/CategoryBreakdown';
@@ -27,6 +27,8 @@ export default function ProfilePage() {
   const [month, setMonth] = useState(currentMonth());
   const profile = useProfile();
   const stats = useMonthStats(month);
+  const budgets = useBudgets();
+  const monthBudget = budgets.data?.find((b) => b.period_type === 'MONTH' && b.category_id === null);
 
   async function signOut() {
     const supabase = createSupabaseBrowser();
@@ -69,8 +71,28 @@ export default function ProfilePage() {
       </div>
 
       <Link
-        href="/friends"
+        href="/budgets"
         className="mt-6 flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3.5 transition-colors duration-fast hover:bg-surface-muted"
+      >
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Wallet className="h-5 w-5" />
+        </span>
+        <span className="min-w-0 flex-1">
+          <span className="block font-medium text-text">Ngân sách</span>
+          {monthBudget && (
+            <span className={`numeric block text-xs ${monthBudget.is_over ? 'text-danger' : 'text-text-muted'}`}>
+              {monthBudget.is_over
+                ? `Vượt ${formatVND(-monthBudget.remaining)} tháng này`
+                : `Còn ${formatVND(monthBudget.remaining)} / ${formatVND(monthBudget.amount)} tháng này`}
+            </span>
+          )}
+        </span>
+        <ChevronRight className="h-5 w-5 text-text-muted" />
+      </Link>
+
+      <Link
+        href="/friends"
+        className="mt-3 flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3.5 transition-colors duration-fast hover:bg-surface-muted"
       >
         <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
           <Users className="h-5 w-5" />

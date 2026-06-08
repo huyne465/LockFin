@@ -30,6 +30,34 @@ export interface FeedPost {
   created_at: string;
   profiles: { id: string; username: string; avatar_url: string | null };
   categories: Pick<Category, 'id' | 'name' | 'icon' | 'color_hex' | 'type'>;
+  /** Present when the new expense touches one or more budgets (optional, backward-compatible). */
+  budget_impact?: BudgetImpact[];
+}
+
+export type BudgetPeriod = 'DAY' | 'MONTH' | 'YEAR';
+
+export interface BudgetStatus {
+  id: string;
+  user_id: string;
+  category_id: string | null;
+  period_type: BudgetPeriod;
+  period_start: string;     // 'YYYY-MM-DD'
+  amount: number;
+  category: { id: string; name: string; icon: string; color_hex: string } | null; // null = tổng
+  spent: number;
+  remaining: number;        // có thể âm khi vượt
+  percent: number;          // spent/amount (0..1+)
+  is_over: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface BudgetImpact {
+  budget_id: string;
+  period_type: BudgetPeriod;
+  category_id: string | null;
+  remaining: number;
+  is_over: boolean;
 }
 
 export interface MonthStat {

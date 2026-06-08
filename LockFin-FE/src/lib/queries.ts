@@ -3,6 +3,7 @@ import { api } from './api';
 import type {
   Profile, Category, FeedPost, MonthStat, CategoryType,
   Friendship, FriendshipWithProfile, ProfileSummary,
+  BudgetStatus, BudgetPeriod,
 } from './types';
 
 export const qk = {
@@ -15,6 +16,7 @@ export const qk = {
   friends: ['friends'] as const,
   friendsIncoming: ['friends', 'incoming'] as const,
   friendsOutgoing: ['friends', 'outgoing'] as const,
+  budgets: (date: string) => ['budgets', date] as const,
 };
 
 export const useProfile = () =>
@@ -59,7 +61,54 @@ export function useCreatePost() {
       qc.invalidateQueries({ queryKey: qk.feed });
       qc.invalidateQueries({ queryKey: ['posts', 'mine'] });
       qc.invalidateQueries({ queryKey: ['stats'] });
+      qc.invalidateQueries({ queryKey: ['budgets'] });
     },
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Budgets                                                             */
+/* ------------------------------------------------------------------ */
+
+const todayIso = () => new Date().toISOString().slice(0, 10);
+
+/** Budgets covering a given day (default: today). BE returns spent/remaining/percent. */
+export const useBudgets = (date = todayIso()) =>
+  useQuery({
+    queryKey: qk.budgets(date),
+    queryFn: () => api<BudgetStatus[]>(`/budgets?date=${date}`),
+  });
+
+export interface UpsertBudgetInput {
+  category_id?: string | null;
+  period_type: BudgetPeriod;
+  period_start: string;   // ngày bất kỳ trong kỳ, BE tự chuẩn hoá
+  amount: number;
+}
+
+export function useUpsertBudget() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpsertBudgetInput) =>
+      api<BudgetStatus>('/budgets', { method: 'POST', body: JSON.stringify(body) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['budgets'] }),
+  });
+}
+
+export function useUpdateBudget() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ id, amount }: { id: string; amount: number }) =>
+      api<BudgetStatus>(`/budgets/${id}`, { method: 'PATCH', body: JSON.stringify({ amount }) }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['budgets'] }),
+  });
+}
+
+export function useDeleteBudget() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api<void>(`/budgets/${id}`, { method: 'DELETE' }),
+    onSuccess: () => qc.invalidateQueries({ queryKey: ['budgets'] }),
   });
 }
 
