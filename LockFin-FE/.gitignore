@@ -13,3 +13,11 @@ public/workbox-*.js.map
 
 docs/
 
+.agents/skills/
+.claude/skills/
+.claudecode/
+.cursorrules/
+.github/
+.idea/
+.ref/
+.task/

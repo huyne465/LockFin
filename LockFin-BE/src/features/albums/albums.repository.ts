@@ -16,11 +16,12 @@ export interface AlbumRow {
   updated_at: string;
 }
 
-/** Aggregated numbers for one album (post count, dynamic spend, fallback cover). */
+/** Aggregated numbers for one album (post count, dynamic spend/income, fallback cover). */
 export interface AlbumStat {
   album_id: string;
   post_count: number;
-  spent: number;
+  spent: number;   // sum of EXPENSE posts
+  income: number;  // sum of INCOME posts
   latest_cover: string | null;
 }
 
@@ -173,6 +174,7 @@ export class AlbumsRepository {
         album_id: string;
         post_count: number | string;
         spent: number | string;
+        income: number | string | null;
         latest_cover: string | null;
       }>;
       return new Map(
@@ -182,6 +184,7 @@ export class AlbumsRepository {
             album_id: r.album_id,
             post_count: Number(r.post_count),
             spent: Number(r.spent),
+            income: Number(r.income ?? 0), // 0 until the RPC is re-deployed with the income column
             latest_cover: r.latest_cover,
           },
         ]),
@@ -194,7 +197,7 @@ export class AlbumsRepository {
   /** Aggregate for a single album (used by detail). */
   async statsForAlbum(albumId: string): Promise<AlbumStat> {
     const map = await this.computeStats([albumId]);
-    return map.get(albumId) ?? { album_id: albumId, post_count: 0, spent: 0, latest_cover: null };
+    return map.get(albumId) ?? { album_id: albumId, post_count: 0, spent: 0, income: 0, latest_cover: null };
   }
 
   /** RPC-free fallback: one pass over the albums' posts. */
@@ -207,7 +210,7 @@ export class AlbumsRepository {
     if (error) throw error;
 
     const map = new Map<string, AlbumStat>(
-      albumIds.map((id) => [id, { album_id: id, post_count: 0, spent: 0, latest_cover: null }]),
+      albumIds.map((id) => [id, { album_id: id, post_count: 0, spent: 0, income: 0, latest_cover: null }]),
     );
 
     for (const row of data ?? []) {
@@ -225,6 +228,7 @@ export class AlbumsRepository {
       if (stat.latest_cover === null && p.photo_url) stat.latest_cover = p.photo_url;
       const cat = Array.isArray(p.categories) ? p.categories[0] : p.categories;
       if (cat?.type === 'EXPENSE') stat.spent += Number(p.amount);
+      else if (cat?.type === 'INCOME') stat.income += Number(p.amount);
     }
     return map;
   }

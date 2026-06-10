@@ -92,7 +92,7 @@ function IconButton({
       title={label}
       onClick={onClick}
       disabled={disabled}
-      className={`flex h-9 w-9 items-center justify-center rounded-full transition-all duration-fast active:scale-90 disabled:opacity-40 ${tones[tone]}`}
+      className={`flex h-11 w-11 items-center justify-center rounded-full transition-all duration-fast active:scale-90 disabled:opacity-40 ${tones[tone]}`}
     >
       {children}
     </button>
@@ -192,7 +192,7 @@ export default function FriendsPage() {
         <Link
           href="/profile"
           aria-label="Quay lại"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-transform duration-fast active:scale-90"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-text-secondary transition-transform duration-fast active:scale-90"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>

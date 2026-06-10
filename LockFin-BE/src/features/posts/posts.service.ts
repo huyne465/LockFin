@@ -5,6 +5,8 @@ import { ProfilesService } from '../profiles/profiles.service';
 import { FriendsRepository } from '../friends/friends.repository';
 import { BudgetsService } from '../budgets/budgets.service';
 import { AlbumsService } from '../albums/albums.service';
+import { ReactionsService } from '../reactions/reactions.service';
+import type { PostRow } from './posts.repository';
 
 @Injectable()
 export class PostsService {
@@ -14,7 +16,15 @@ export class PostsService {
     private readonly friends: FriendsRepository,
     private readonly budgets: BudgetsService,
     private readonly albums: AlbumsService,
+    private readonly reactions: ReactionsService,
   ) {}
+
+  /** Attach each viewer's reaction summary to a batch of posts. */
+  private async withReactions(viewerId: string, posts: PostRow[]) {
+    if (posts.length === 0) return [];
+    const map = await this.reactions.summaryFor(viewerId, posts.map((p) => p.id));
+    return posts.map((p) => ({ ...p, reactions: map.get(p.id) ?? [] }));
+  }
 
   async create(userId: string, dto: CreatePostDto) {
     // Reject attaching a post to an album the caller doesn't own (404/403).
@@ -36,11 +46,13 @@ export class PostsService {
   /** Feed shows the user's own posts plus those of their accepted friends. */
   async feed(userId: string, limit?: number, offset?: number) {
     const friendIds = await this.friends.acceptedFriendIds(userId);
-    return this.repo.feed([userId, ...friendIds], limit, offset);
+    const posts = await this.repo.feed([userId, ...friendIds], limit, offset);
+    return this.withReactions(userId, posts);
   }
 
-  mine(userId: string, month?: string, limit?: number, offset?: number) {
-    return this.repo.mine(userId, month, limit, offset);
+  async mine(userId: string, month?: string, limit?: number, offset?: number) {
+    const posts = await this.repo.mine(userId, month, limit, offset);
+    return this.withReactions(userId, posts);
   }
 
   stats(userId: string, month: string) {

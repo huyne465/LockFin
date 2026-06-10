@@ -1,10 +1,12 @@
 'use client';
 
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Flame, Heart, Plus } from 'lucide-react';
+import {
+  ArrowDownLeft, ArrowUpRight, ChevronLeft, ChevronRight, Flame, Heart, Plus,
+} from 'lucide-react';
 import { useAlbums, useMyPosts, useProfile } from '@/lib/queries';
-import { currentMonth } from '@/lib/format';
+import { currentMonth, formatVND } from '@/lib/format';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
 import type { FeedPost } from '@/lib/types';
@@ -13,10 +15,20 @@ import { AlbumForm } from '@/components/album/AlbumForm';
 import { MemoryCalendar } from './MemoryCalendar';
 import { MemoryLightbox } from './MemoryLightbox';
 
+const MONTHS = [
+  'Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6',
+  'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12',
+];
+
 function shiftMonth(month: string, delta: number) {
   const [y, m] = month.split('-').map(Number);
   const d = new Date(y, m - 1 + delta, 1);
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+}
+
+function monthLabel(month: string) {
+  const [y, m] = month.split('-').map(Number);
+  return `${MONTHS[m - 1]} ${y}`;
 }
 
 export function MemoriesView() {
@@ -31,6 +43,17 @@ export function MemoriesView() {
   const list = posts.data ?? [];
   const isCurrent = month === currentMonth();
 
+  // Chi = EXPENSE, Thu = INCOME (khớp định nghĩa ở backend; SAVING/GOAL không tính vào hai ô này).
+  const { chi, thu } = useMemo(() => {
+    let chi = 0;
+    let thu = 0;
+    for (const p of list) {
+      if (p.categories.type === 'INCOME') thu += p.amount;
+      else if (p.categories.type === 'EXPENSE') chi += p.amount;
+    }
+    return { chi, thu };
+  }, [list]);
+
   return (
     <div className="min-h-dvh bg-background">
       {/* Header */}
@@ -40,7 +63,7 @@ export function MemoriesView() {
         <Link
           href="/profile"
           aria-label="Hồ sơ"
-          className="h-10 w-10 overflow-hidden rounded-full ring-2 ring-primary/20"
+          className="h-11 w-11 overflow-hidden rounded-full ring-2 ring-primary/20"
         >
           {profile.data?.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -108,24 +131,48 @@ export function MemoriesView() {
         </section>
 
         {/* Month switcher */}
-        <div className="mb-4 flex items-center justify-center gap-4">
+        <div className="mb-3 flex items-center justify-between rounded-2xl glass px-2 py-2 shadow-card">
           <button
             onClick={() => setMonth((m) => shiftMonth(m, -1))}
             aria-label="Tháng trước"
-            className="glass flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-transform duration-fast active:scale-90"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-primary transition-transform duration-fast active:scale-90"
           >
             <ChevronLeft className="h-5 w-5" />
           </button>
-          <span className="numeric min-w-28 text-center text-sm font-semibold text-text-secondary">{month}</span>
+          <span className="font-display text-base font-bold text-text">{monthLabel(month)}</span>
           <button
             onClick={() => !isCurrent && setMonth((m) => shiftMonth(m, 1))}
             disabled={isCurrent}
             aria-label="Tháng sau"
-            className="glass flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-transform duration-fast active:scale-90 disabled:opacity-30"
+            className="flex h-11 w-11 items-center justify-center rounded-full text-primary transition-transform duration-fast active:scale-90 disabled:opacity-25"
           >
             <ChevronRight className="h-5 w-5" />
           </button>
         </div>
+
+        {/* Chi / Thu — tổng quan tháng. Màu sắc đi kèm icon + nhãn (không chỉ dựa vào màu). */}
+        {!posts.isLoading && (
+          <div className="mb-4 grid grid-cols-2 gap-3">
+            <div className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-card ring-1 ring-danger/15">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger text-white">
+                <ArrowUpRight className="h-5 w-5" strokeWidth={2.5} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Chi</p>
+                <p className="numeric truncate text-lg font-bold leading-tight text-text">{formatVND(chi)}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-card ring-1 ring-success/15">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success text-white">
+                <ArrowDownLeft className="h-5 w-5" strokeWidth={2.5} />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Thu</p>
+                <p className="numeric truncate text-lg font-bold leading-tight text-text">{formatVND(thu)}</p>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Calendar */}
         {posts.isLoading && <Skeleton className="h-96 w-full rounded-[1.75rem]" />}

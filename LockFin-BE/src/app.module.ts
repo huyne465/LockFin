@@ -9,6 +9,7 @@ import { PostsModule } from './features/posts/posts.module';
 import { FriendsModule } from './features/friends/friends.module';
 import { BudgetsModule } from './features/budgets/budgets.module';
 import { AlbumsModule } from './features/albums/albums.module';
+import { ReactionsModule } from './features/reactions/reactions.module';
 import { HealthController } from './health.controller';
 
 @Module({
@@ -21,6 +22,7 @@ import { HealthController } from './health.controller';
     FriendsModule,
     BudgetsModule,
     AlbumsModule,
+    ReactionsModule,
   ],
   controllers: [HealthController],
   providers: [

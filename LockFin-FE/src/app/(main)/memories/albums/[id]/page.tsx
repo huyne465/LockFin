@@ -3,7 +3,7 @@
 import { useMemo, useState } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
-  ArrowLeft, ChevronDown, Globe, Lock, Pencil, Plus, Trash2, Wallet, X,
+  ArrowDownLeft, ArrowLeft, ArrowUpRight, ChevronDown, Globe, Lock, Pencil, Plus, Trash2, Wallet, X,
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import {
@@ -139,7 +139,7 @@ export default function AlbumDetailPage() {
         <button
           onClick={() => router.back()}
           aria-label="Quay lại"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-transform duration-fast active:scale-90"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-text-secondary transition-transform duration-fast active:scale-90"
         >
           <ArrowLeft className="h-5 w-5" />
         </button>
@@ -149,14 +149,14 @@ export default function AlbumDetailPage() {
             <button
               onClick={() => setEditing(true)}
               aria-label="Sửa album"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-transform duration-fast active:scale-90"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-text-secondary transition-transform duration-fast active:scale-90"
             >
               <Pencil className="h-[18px] w-[18px]" />
             </button>
             <button
               onClick={onDelete}
               aria-label="Xoá album"
-              className="flex h-9 w-9 items-center justify-center rounded-full text-danger transition-transform duration-fast active:scale-90"
+              className="flex h-11 w-11 items-center justify-center rounded-full text-danger transition-transform duration-fast active:scale-90"
             >
               <Trash2 className="h-[18px] w-[18px]" />
             </button>
@@ -197,6 +197,28 @@ export default function AlbumDetailPage() {
               )}
             </div>
 
+            {/* Tổng quan Thu / Chi — màu đi kèm icon + nhãn (không chỉ dựa vào màu) */}
+            <div className="mt-4 grid grid-cols-2 gap-3">
+              <div className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-card ring-1 ring-danger/15">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger text-white">
+                  <ArrowUpRight className="h-5 w-5" strokeWidth={2.5} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Chi</p>
+                  <p className="numeric truncate text-lg font-bold leading-tight text-text">{formatVND(album.spent)}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-card ring-1 ring-success/15">
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success text-white">
+                  <ArrowDownLeft className="h-5 w-5" strokeWidth={2.5} />
+                </span>
+                <div className="min-w-0">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Thu</p>
+                  <p className="numeric truncate text-lg font-bold leading-tight text-text">{formatVND(album.income)}</p>
+                </div>
+              </div>
+            </div>
+
             {/* Thanh ngân sách chuyến */}
             {hasBudget && (
               <div className="mt-4 rounded-2xl bg-surface px-4 py-3.5 shadow-card">
@@ -215,8 +237,9 @@ export default function AlbumDetailPage() {
                 <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface-muted">
                   <div className={clsx('h-full rounded-full transition-all duration-base', BAR[t])} style={{ width: `${pct * 100}%` }} />
                 </div>
-                <div className="mt-2 text-xs text-text-muted">
-                  <span className="numeric">{formatVND(album.spent)} / {formatVND(album.budget_amount!)}</span>
+                <div className="mt-2 flex items-center justify-between text-xs text-text-muted">
+                  <span>Đã chi <span className={clsx('numeric font-semibold', TEXT[t])}>{formatVND(album.spent)}</span></span>
+                  <span className="numeric">Hạn mức {formatVND(album.budget_amount!)}</span>
                 </div>
               </div>
             )}

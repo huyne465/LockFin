@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Plus } from 'lucide-react';
+import { AlertTriangle, ArrowLeft, CheckCircle2, Plus } from 'lucide-react';
+import { clsx } from 'clsx';
 import { useBudgets } from '@/lib/queries';
 import { BudgetCard } from '@/components/budget/BudgetCard';
 import { BudgetForm } from '@/components/budget/BudgetForm';
@@ -28,7 +29,9 @@ export default function BudgetsPage() {
     return g;
   }, [data]);
 
-  const isEmpty = !isLoading && (data?.length ?? 0) === 0;
+  const overCount = useMemo(() => (data ?? []).filter((b) => b.is_over).length, [data]);
+  const total = data?.length ?? 0;
+  const isEmpty = !isLoading && total === 0;
 
   return (
     <div className="min-h-dvh bg-background">
@@ -36,7 +39,7 @@ export default function BudgetsPage() {
         <Link
           href="/profile"
           aria-label="Quay lại"
-          className="flex h-9 w-9 items-center justify-center rounded-full text-text-secondary transition-transform duration-fast active:scale-90"
+          className="flex h-11 w-11 items-center justify-center rounded-full text-text-secondary transition-transform duration-fast active:scale-90"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -66,13 +69,36 @@ export default function BudgetsPage() {
           />
         )}
 
+        {/* Tổng quan — bao nhiêu hạn mức, bao nhiêu đang vượt */}
+        {!isLoading && !isEmpty && (
+          <div className="mt-4 flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-card">
+            <span
+              className={clsx(
+                'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
+                overCount > 0 ? 'bg-danger/12 text-danger' : 'bg-success/12 text-success',
+              )}
+            >
+              {overCount > 0 ? <AlertTriangle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
+            </span>
+            <div className="min-w-0">
+              <p className="text-sm font-semibold text-text">
+                {overCount > 0 ? `${overCount} hạn mức đang vượt` : 'Mọi hạn mức trong tầm kiểm soát'}
+              </p>
+              <p className="numeric text-xs text-text-muted">{total} ngân sách đang theo dõi</p>
+            </div>
+          </div>
+        )}
+
         {!isLoading && !isEmpty &&
           SECTIONS.map(({ period, title }) => {
             const items = byPeriod[period];
             if (items.length === 0) return null;
             return (
               <section key={period} className="mt-6">
-                <h2 className="mb-2 px-1 text-sm font-semibold text-text-secondary">{title}</h2>
+                <div className="mb-2 flex items-center justify-between px-1">
+                  <h2 className="text-sm font-semibold text-text-secondary">{title}</h2>
+                  <span className="numeric text-xs text-text-muted">{items.length}</span>
+                </div>
                 <div className="space-y-2.5">
                   {items.map((b) => (
                     <BudgetCard key={b.id} budget={b} onEdit={setEditing} />

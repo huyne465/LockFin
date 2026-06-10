@@ -4,7 +4,7 @@ import type {
   Profile, Category, FeedPost, MonthStat, CategoryType,
   Friendship, FriendshipWithProfile, ProfileSummary,
   BudgetStatus, BudgetPeriod,
-  AlbumSummary, AlbumDetail,
+  AlbumSummary, AlbumDetail, ReactionSummary,
 } from './types';
 
 export const qk = {
@@ -279,6 +279,61 @@ export function useRemoveFriendship() {
   return useMutation({
     mutationFn: (id: string) => api<void>(`/friends/${id}`, { method: 'DELETE' }),
     onSuccess: () => invalidateFriendData(qc),
+  });
+}
+
+/* ------------------------------------------------------------------ */
+/* Reactions                                                           */
+/* ------------------------------------------------------------------ */
+
+type FeedInfinite = { pages: FeedPost[][]; pageParams: unknown[] };
+
+/** Toggle a viewer's emoji on a post's reaction list (client-side preview). */
+export function toggleLocal(list: ReactionSummary[] = [], emoji: string): ReactionSummary[] {
+  const existing = list.find((r) => r.emoji === emoji);
+  if (existing?.reacted) {
+    const count = existing.count - 1;
+    return count <= 0
+      ? list.filter((r) => r.emoji !== emoji)
+      : list.map((r) => (r.emoji === emoji ? { ...r, count, reacted: false } : r));
+  }
+  if (existing) {
+    return list.map((r) => (r.emoji === emoji ? { ...r, count: r.count + 1, reacted: true } : r));
+  }
+  return [...list, { emoji, count: 1, reacted: true }];
+}
+
+/** Apply a reaction transform to a post wherever it's cached (feed + every mine month). */
+function transformReactions(
+  qc: QueryClient,
+  postId: string,
+  fn: (r: ReactionSummary[]) => ReactionSummary[],
+) {
+  qc.setQueryData<FeedInfinite>(qk.feed, (old) =>
+    old
+      ? { ...old, pages: old.pages.map((pg) => pg.map((p) => (p.id === postId ? { ...p, reactions: fn(p.reactions ?? []) } : p))) }
+      : old,
+  );
+  qc.setQueriesData<FeedPost[]>({ queryKey: ['posts', 'mine'] }, (old) =>
+    Array.isArray(old) ? old.map((p) => (p.id === postId ? { ...p, reactions: fn(p.reactions ?? []) } : p)) : old,
+  );
+}
+
+export function useToggleReaction() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: ({ postId, emoji }: { postId: string; emoji: string }) =>
+      api<ReactionSummary[]>(`/posts/${postId}/reactions`, {
+        method: 'POST',
+        body: JSON.stringify({ emoji }),
+      }),
+    // Snappy preview, then reconcile with the server's authoritative summary.
+    onMutate: ({ postId, emoji }) => transformReactions(qc, postId, (r) => toggleLocal(r, emoji)),
+    onSuccess: (data, { postId }) => transformReactions(qc, postId, () => data),
+    onError: () => {
+      qc.invalidateQueries({ queryKey: qk.feed });
+      qc.invalidateQueries({ queryKey: ['posts', 'mine'] });
+    },
   });
 }
 

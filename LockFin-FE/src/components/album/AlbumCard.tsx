@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Globe, ImageIcon, Lock } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Globe, ImageIcon, Lock } from 'lucide-react';
 import { clsx } from 'clsx';
 import { formatVND } from '@/lib/format';
 import type { AlbumSummary } from '@/lib/types';
@@ -68,6 +68,22 @@ export function AlbumCard({ album }: { album: AlbumSummary }) {
                 <span className="numeric text-text-muted">/ {formatVND(album.budget_amount!)}</span>
               )}
             </div>
+          </div>
+        )}
+
+        {/* Chi (chỉ khi không có ngân sách — tránh lặp với thanh trên) + Thu */}
+        {!hasBudget && album.spent > 0 && (
+          <div className="mt-1.5 flex items-center gap-1 text-[11px] text-text-secondary">
+            <ArrowUpRight className="h-3 w-3 text-danger" strokeWidth={2.5} />
+            <span className="numeric font-semibold">{formatVND(album.spent)}</span>
+            <span className="text-text-muted">chi</span>
+          </div>
+        )}
+        {album.income > 0 && (
+          <div className="mt-1.5 flex items-center gap-1 text-[11px] text-text-secondary">
+            <ArrowDownLeft className="h-3 w-3 text-success" strokeWidth={2.5} />
+            <span className="numeric font-semibold">{formatVND(album.income)}</span>
+            <span className="text-text-muted">thu</span>
           </div>
         )}
       </div>

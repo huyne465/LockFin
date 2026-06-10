@@ -58,7 +58,7 @@ export function CameraView() {
         <Link
           href="/profile"
           aria-label="Hồ sơ"
-          className="h-10 w-10 overflow-hidden rounded-full ring-2 ring-white/30"
+          className="h-11 w-11 overflow-hidden rounded-full ring-2 ring-white/30"
         >
           {profile?.avatar_url ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -88,7 +88,7 @@ export function CameraView() {
           <button
             onClick={() => setFlash((f) => !f)}
             aria-label="Đèn flash"
-            className="glass-dark absolute left-3 top-3 flex h-10 w-10 items-center justify-center rounded-full text-text-inverse transition-transform duration-fast active:scale-90"
+            className="glass-dark absolute left-3 top-3 flex h-11 w-11 items-center justify-center rounded-full text-text-inverse transition-transform duration-fast active:scale-90"
           >
             {flash ? <Zap className="h-5 w-5 text-cta" /> : <ZapOff className="h-5 w-5" />}
           </button>

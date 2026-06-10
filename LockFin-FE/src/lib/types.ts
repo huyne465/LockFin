@@ -19,6 +19,16 @@ export interface Category {
   color_hex: string;
 }
 
+/** Aggregated reactions on a post, from the viewer's perspective. */
+export interface ReactionSummary {
+  emoji: string;
+  count: number;
+  reacted: boolean; // viewer reacted with this emoji
+}
+
+/** Emoji friends can react with — keep in sync with BE reactions.constants.ts. */
+export const REACTION_EMOJIS = ['❤️', '😂', '😮', '😢', '🔥', '👏'] as const;
+
 export interface FeedPost {
   id: string;
   user_id: string;
@@ -34,6 +44,8 @@ export interface FeedPost {
   categories: Pick<Category, 'id' | 'name' | 'icon' | 'color_hex' | 'type'>;
   /** Present when the new expense touches one or more budgets (optional, backward-compatible). */
   budget_impact?: BudgetImpact[];
+  /** Reaction summary attached by the BE on feed/mine (optional, backward-compatible). */
+  reactions?: ReactionSummary[];
 }
 
 /* ------------------------------------------------------------------ */
@@ -56,7 +68,8 @@ export interface Album {
 
 export interface AlbumSummary extends Album {
   post_count: number;
-  spent: number;
+  spent: number;                    // tổng CHI (EXPENSE)
+  income: number;                   // tổng THU (INCOME)
   remaining: number | null;         // null nếu chưa đặt budget
 }
 

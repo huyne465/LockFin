@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useRef } from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
-import { Flame, UserPlus } from 'lucide-react';
+import { ArrowDownLeft, ArrowUpRight, Flame, UserPlus } from 'lucide-react';
+import { clsx } from 'clsx';
 import { useFeed, useIncomingRequests, useProfile } from '@/lib/queries';
 import { formatRelative, formatVND } from '@/lib/format';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { PostReactions } from '@/components/post/PostReactions';
 
 export default function FeedPage() {
   const profile = useProfile();
@@ -29,29 +30,33 @@ export default function FeedPage() {
   const posts = feed.data?.pages.flat() ?? [];
 
   return (
-    <div>
-      <header className="sticky top-0 z-30 flex items-center justify-between border-b border-border bg-surface/90 px-4 py-3 backdrop-blur safe-top">
-        <div className="flex items-center gap-2">
-          <div className="h-9 w-9 overflow-hidden rounded-full bg-surface-muted">
+    <div className="min-h-dvh bg-background">
+      <header className="sticky top-0 z-30 glass flex items-center justify-between px-4 py-3 safe-top">
+        <div className="flex items-center gap-2.5">
+          <span className="h-9 w-9 overflow-hidden rounded-full ring-2 ring-primary/20">
             {profile.data?.avatar_url ? (
-              <Image src={profile.data.avatar_url} alt="" width={36} height={36} />
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.data.avatar_url} alt="" className="h-full w-full object-cover" />
             ) : (
-              <div className="flex h-full w-full items-center justify-center font-display font-semibold text-text-secondary">
-                {profile.data?.display_name?.[0] ?? '?'}
-              </div>
+              <span className="flex h-full w-full items-center justify-center bg-surface-muted font-display text-sm font-semibold text-text-secondary">
+                {profile.data?.display_name?.[0]?.toUpperCase() ?? '?'}
+              </span>
             )}
+          </span>
+          <div className="leading-tight">
+            <p className="text-[11px] text-text-muted">Khoảnh khắc của</p>
+            <p className="font-display text-sm font-bold text-text">{profile.data?.display_name ?? '…'}</p>
           </div>
-          <span className="font-medium">{profile.data?.display_name ?? '…'}</span>
         </div>
         <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1 rounded-full bg-surface-muted px-3 py-1.5 text-streak">
-            <Flame className="h-4 w-4" />
-            <span className="numeric font-semibold">{profile.data?.current_streak ?? 0}</span>
-          </div>
+          <span className="flex items-center gap-1 rounded-full bg-streak/10 px-3 py-1.5 text-streak">
+            <Flame className="h-4 w-4" fill="currentColor" />
+            <span className="numeric text-sm font-bold">{profile.data?.current_streak ?? 0}</span>
+          </span>
           <Link
             href="/friends"
             aria-label="Bạn bè"
-            className="relative flex h-9 w-9 items-center justify-center rounded-full bg-surface-muted text-text-secondary transition-transform duration-fast active:scale-90"
+            className="relative flex h-11 w-11 items-center justify-center rounded-full bg-surface-muted text-text-secondary transition-transform duration-fast active:scale-90"
           >
             <UserPlus className="h-[1.15rem] w-[1.15rem]" />
             {pendingCount > 0 && (
@@ -64,8 +69,8 @@ export default function FeedPage() {
       </header>
 
       {feed.isLoading && (
-        <div className="space-y-4 p-4">
-          {[0, 1].map((i) => <Skeleton key={i} className="aspect-[4/5] w-full" />)}
+        <div className="space-y-5 p-4">
+          {[0, 1].map((i) => <Skeleton key={i} className="aspect-[4/5] w-full rounded-[1.75rem]" />)}
         </div>
       )}
 
@@ -73,38 +78,72 @@ export default function FeedPage() {
         <EmptyState icon="📷" title="Chưa có post nào" hint="Chụp ảnh chi tiêu đầu tiên, hoặc kết bạn để xem feed của bạn bè!" />
       )}
 
-      <ul className="space-y-6 p-4">
-        {posts.map((p) => (
-          <li key={p.id} className="overflow-hidden rounded-lg bg-surface shadow-card">
-            <div className="relative aspect-[4/5] w-full bg-surface-muted">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={p.photo_url} alt={p.note ?? ''} className="h-full w-full object-cover" />
-              <div className="absolute left-3 top-3 flex items-center gap-2 rounded-full bg-black/45 px-2.5 py-1 text-text-inverse backdrop-blur">
-                <div className="h-5 w-5 overflow-hidden rounded-full bg-white/20 text-center text-xs leading-5">
-                  {p.profiles.username?.[0]?.toUpperCase() ?? '?'}
+      <ul className="space-y-5 p-4">
+        {posts.map((p) => {
+          const isIncome = p.categories.type === 'INCOME';
+          const initial = p.profiles.username?.[0]?.toUpperCase() ?? '?';
+          return (
+            <li
+              key={p.id}
+              className="overflow-hidden rounded-[1.75rem] bg-surface shadow-card ring-1 ring-black/5"
+            >
+              <div className="relative aspect-[4/5] w-full bg-black">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={p.photo_url} alt={p.note ?? p.categories.name} className="h-full w-full object-cover" />
+
+                {/* Tác giả */}
+                <div className="glass-pill absolute left-3 top-3 flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2.5 text-text-inverse">
+                  <span className="flex h-6 w-6 items-center justify-center overflow-hidden rounded-full bg-white/20 text-[11px] font-semibold">
+                    {p.profiles.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={p.profiles.avatar_url} alt="" className="h-full w-full object-cover" />
+                    ) : (
+                      initial
+                    )}
+                  </span>
+                  <span className="text-xs font-medium">{p.profiles.username}</span>
                 </div>
-                <span className="text-xs font-medium">{p.profiles.username}</span>
-              </div>
-              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/70 to-transparent p-4 text-text-inverse">
-                <div className="flex items-end justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-1.5 text-sm">
-                      <span>{p.categories.icon}</span>
-                      <span className="truncate">{p.categories.name}</span>
+
+                {/* Tag Thu/Chi — màu + icon + chữ */}
+                <span
+                  className={clsx(
+                    'absolute right-3 top-3 flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold text-white shadow',
+                    isIncome ? 'bg-emerald-700' : 'bg-rose-600',
+                  )}
+                >
+                  {isIncome ? <ArrowDownLeft className="h-3.5 w-3.5" strokeWidth={2.5} /> : <ArrowUpRight className="h-3.5 w-3.5" strokeWidth={2.5} />}
+                  {isIncome ? 'Thu' : 'Chi'}
+                </span>
+
+                <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent p-4 text-text-inverse">
+                  <div className="flex items-end justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="flex items-center gap-1.5 text-sm">
+                        <span>{p.categories.icon}</span>
+                        <span className="truncate">{p.categories.name}</span>
+                      </div>
+                      {p.note && <p className="mt-1 truncate text-sm opacity-90">{p.note}</p>}
                     </div>
-                    {p.note && <p className="mt-1 truncate text-sm opacity-90">{p.note}</p>}
+                    <span className={clsx('numeric shrink-0 text-xl font-bold', isIncome ? 'text-emerald-300' : 'text-rose-300')}>
+                      {isIncome ? '+' : '−'}{formatVND(p.amount)}
+                    </span>
                   </div>
-                  <span className="numeric shrink-0 text-lg font-bold">{formatVND(p.amount)}</span>
+                  <p className="mt-1 text-[11px] opacity-75">{formatRelative(p.created_at)}</p>
                 </div>
-                <p className="mt-1 text-[11px] opacity-75">{formatRelative(p.created_at)}</p>
               </div>
-            </div>
-          </li>
-        ))}
+
+              <div className="px-3 py-2.5">
+                <PostReactions postId={p.id} reactions={p.reactions} />
+              </div>
+            </li>
+          );
+        })}
       </ul>
 
       <div ref={sentinel} className="h-10" />
-      {feed.isFetchingNextPage && <p className="pb-6 text-center text-sm text-text-muted">Đang tải thêm…</p>}
+      {feed.isFetchingNextPage && (
+        <p className="pb-6 text-center text-sm text-text-muted">Đang tải thêm…</p>
+      )}
     </div>
   );
 }

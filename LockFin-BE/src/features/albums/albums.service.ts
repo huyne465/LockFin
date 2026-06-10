@@ -6,7 +6,8 @@ import { UpdateAlbumDto } from './dto/update-album.dto';
 
 export interface AlbumSummary extends AlbumRow {
   post_count: number;
-  spent: number;
+  spent: number;   // tổng CHI (EXPENSE) trong album
+  income: number;  // tổng THU (INCOME) trong album
   remaining: number | null;
   cover_photo_url: string | null; // already falls back to the latest post photo
 }
@@ -149,6 +150,7 @@ export class AlbumsService {
 function toSummary(album: AlbumRow, stat: AlbumStat | undefined, showMoney: boolean): AlbumSummary {
   const post_count = stat?.post_count ?? 0;
   const spent = stat?.spent ?? 0;
+  const income = stat?.income ?? 0;
   const cover = album.cover_photo_url ?? stat?.latest_cover ?? null;
 
   if (!showMoney) {
@@ -158,6 +160,7 @@ function toSummary(album: AlbumRow, stat: AlbumStat | undefined, showMoney: bool
       cover_photo_url: cover,
       post_count,
       spent: 0,
+      income: 0,
       remaining: null,
     };
   }
@@ -169,6 +172,7 @@ function toSummary(album: AlbumRow, stat: AlbumStat | undefined, showMoney: bool
     cover_photo_url: cover,
     post_count,
     spent,
+    income,
     remaining,
   };
 }
