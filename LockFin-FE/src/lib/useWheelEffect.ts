@@ -2,6 +2,9 @@
 
 import { useEffect, type RefObject } from 'react';
 
+/** Nửa độ rộng dải giữa khung nhìn (theo |p| ∈ [0,1]) mà thẻ giữ thẳng hoàn toàn. */
+const DEAD_ZONE = 0.32;
+
 /**
  * Scroll-driven "polaroid wheel": the card nearest the scroller's vertical centre
  * stands upright and opaque; cards above/below tilt back, shrink and fade.
@@ -46,10 +49,15 @@ export function useWheelEffect(ref: RefObject<HTMLElement | null>, count: number
         const range = view.height / 2 + r.height / 2;
         // p: -1 (above centre) .. 0 (centred) .. 1 (below centre)
         const p = Math.max(-1, Math.min(1, (center - mid) / range));
+        // Dead-zone: cards within a central band stay fully upright (mirrors the
+        // 42–58% flat plateau of the original keyframe). Without it every card but
+        // the exact-centre one tilts, so a screen full of cards looks stretched.
         const abs = Math.abs(p);
-        const tilt = (i % 2 === 0 ? 3.5 : -3.5) * p;
-        el.style.transform = `rotateX(${36 * p}deg) rotateZ(${tilt}deg) scale(${1 - 0.18 * abs})`;
-        el.style.opacity = `${1 - 0.7 * abs}`;
+        const t = abs <= DEAD_ZONE ? 0 : (abs - DEAD_ZONE) / (1 - DEAD_ZONE);
+        const signed = Math.sign(p) * t;
+        const tilt = (i % 2 === 0 ? 3.5 : -3.5) * signed;
+        el.style.transform = `rotateX(${36 * signed}deg) rotateZ(${tilt}deg) scale(${1 - 0.18 * t})`;
+        el.style.opacity = `${1 - 0.7 * t}`;
       }
     };
 

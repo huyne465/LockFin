@@ -148,7 +148,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
                       className={clsx(
                         'flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 transition-all duration-fast',
                         categoryId === c.id
-                          ? 'border-primary bg-primary text-text-inverse shadow-soft'
+                          ? 'border-primary bg-primary/10 text-primary shadow-soft'
                           : 'border-border bg-surface text-text hover:border-primary/40',
                       )}
                     >
@@ -220,7 +220,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
             className={clsx(
               'flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 transition-all duration-fast',
               albumId === null
-                ? 'border-primary bg-primary text-text-inverse shadow-soft'
+                ? 'border-primary bg-primary/10 text-primary shadow-soft'
                 : 'border-border bg-surface text-text hover:border-primary/40',
             )}
           >
@@ -234,7 +234,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
               className={clsx(
                 'flex shrink-0 items-center gap-2 rounded-full border py-1.5 pl-1.5 pr-3 transition-all duration-fast',
                 albumId === a.id
-                  ? 'border-primary bg-primary text-text-inverse shadow-soft'
+                  ? 'border-primary bg-primary/10 text-primary shadow-soft'
                   : 'border-border bg-surface text-text hover:border-primary/40',
               )}
             >

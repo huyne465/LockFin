@@ -128,7 +128,7 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
                 className={clsx(
                   'flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition-all duration-fast',
                   categoryId === null
-                    ? 'border-primary bg-primary text-text-inverse shadow-soft'
+                    ? 'border-primary bg-primary/10 text-primary shadow-soft'
                     : 'border-border bg-surface text-text hover:border-primary/40',
                 )}
               >
@@ -142,7 +142,7 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
                   className={clsx(
                     'flex items-center gap-2 rounded-full border px-3 py-2 text-sm font-medium transition-all duration-fast',
                     categoryId === c.id
-                      ? 'border-primary bg-primary text-text-inverse shadow-soft'
+                      ? 'border-primary bg-primary/10 text-primary shadow-soft'
                       : 'border-border bg-surface text-text hover:border-primary/40',
                   )}
                 >
