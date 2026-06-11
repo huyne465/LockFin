@@ -3,7 +3,7 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr';
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
-const PUBLIC_PATHS = ['/login', '/signup', '/offline', '/auth/callback'];
+const PUBLIC_PATHS = ['/login', '/signup', '/forgot-password', '/reset-password', '/offline', '/auth/callback'];
 
 export async function middleware(req: NextRequest) {
   // `res` is reassigned by setAll when Supabase refreshes the session, so the

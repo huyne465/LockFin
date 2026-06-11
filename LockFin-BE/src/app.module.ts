@@ -10,12 +10,14 @@ import { FriendsModule } from './features/friends/friends.module';
 import { BudgetsModule } from './features/budgets/budgets.module';
 import { AlbumsModule } from './features/albums/albums.module';
 import { ReactionsModule } from './features/reactions/reactions.module';
+import { NotificationsModule } from './features/notifications/notifications.module';
 import { HealthController } from './health.controller';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true, envFilePath: '.env' }),
     SupabaseModule,
+    NotificationsModule,
     ProfilesModule,
     CategoriesModule,
     PostsModule,

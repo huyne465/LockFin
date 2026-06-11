@@ -1,6 +1,8 @@
 import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { ReactionsRepository } from './reactions.repository';
 import { FriendsRepository } from '../friends/friends.repository';
+import { ProfilesService } from '../profiles/profiles.service';
+import { OneSignalService } from '../notifications/onesignal.service';
 import { REACTION_EMOJIS, type ReactionSummary } from './reactions.constants';
 
 @Injectable()
@@ -8,6 +10,8 @@ export class ReactionsService {
   constructor(
     private readonly repo: ReactionsRepository,
     private readonly friends: FriendsRepository,
+    private readonly profiles: ProfilesService,
+    private readonly push: OneSignalService,
   ) {}
 
   /**
@@ -29,9 +33,23 @@ export class ReactionsService {
       await this.repo.remove(postId, userId, emoji);
     } else {
       await this.repo.add(postId, userId, emoji);
+      // Notify the author when someone else reacts (not on un-react / self-react).
+      if (author !== userId) void this.notifyAuthor(author, userId, emoji);
     }
 
     return (await this.summaryFor(userId, [postId])).get(postId) ?? [];
+  }
+
+  /** Fire-and-forget push to a post author when a friend reacts. */
+  private async notifyAuthor(authorId: string, reactorId: string, emoji: string): Promise<void> {
+    const reactor = await this.profiles.getPublicProfile(reactorId).catch(() => null);
+    const name = reactor?.display_name || reactor?.username || 'Một người bạn';
+    await this.push.sendToUsers([authorId], {
+      title: 'Tương tác mới',
+      body: `${name} đã thả ${emoji} vào bài của bạn`,
+      url: '/feed',
+      data: { type: 'reaction', reactor_id: reactorId },
+    });
   }
 
   /** Reaction summaries for a batch of posts, ordered by popularity. */

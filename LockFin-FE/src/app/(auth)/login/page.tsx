@@ -1,19 +1,25 @@
 'use client';
 
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { Suspense, useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import { createSupabaseBrowser } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
 
-export default function LoginPage() {
+function LoginForm() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const push = useToast((s) => s.push);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const error = searchParams.get('error');
+    if (error) push(error, 'error');
+  }, [searchParams, push]);
 
   async function handleEmail(e: React.FormEvent) {
     e.preventDefault();
@@ -43,6 +49,7 @@ export default function LoginPage() {
       <form onSubmit={handleEmail} className="flex flex-col gap-3 rounded-lg bg-surface p-6 shadow-card">
         <Input type="email" inputMode="email" autoComplete="email" placeholder="Email" required value={email} onChange={(e) => setEmail(e.target.value)} />
         <Input type="password" autoComplete="current-password" placeholder="Mật khẩu" required value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Link href="/forgot-password" className="self-end text-xs font-medium text-primary">Quên mật khẩu?</Link>
         <Button type="submit" loading={loading}>Đăng nhập</Button>
       </form>
       <div className="flex items-center gap-3 text-xs text-text-muted">
@@ -53,5 +60,13 @@ export default function LoginPage() {
         Chưa có tài khoản? <Link href="/signup" className="font-medium text-primary">Đăng ký</Link>
       </p>
     </main>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginForm />
+    </Suspense>
   );
 }

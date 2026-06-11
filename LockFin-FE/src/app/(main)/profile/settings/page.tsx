@@ -2,12 +2,13 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Camera, KeyRound, Loader2, UserRound } from 'lucide-react';
+import { ArrowLeft, Bell, Camera, KeyRound, Loader2, UserRound } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '@/lib/queries';
 import { createSupabaseBrowser } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
+import { NotificationToggle } from '@/components/NotificationToggle';
 
 function Card({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -178,6 +179,11 @@ export default function ProfileSettingsPage() {
           >
             Lưu thay đổi
           </Button>
+        </Card>
+
+        {/* Notifications */}
+        <Card title="Thông báo" icon={<Bell className="h-4 w-4" />}>
+          <NotificationToggle />
         </Card>
 
         {/* Password */}

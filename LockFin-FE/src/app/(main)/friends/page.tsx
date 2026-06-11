@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Check, Clock, Copy, Search, UserPlus, X } from 'lucide-react';
+import { ArrowLeft, Check, Clock, Copy, Search, Share2, UserPlus, X } from 'lucide-react';
 import {
   useAcceptFriendRequest,
   useFriends,
@@ -169,6 +169,28 @@ export default function FriendsPage() {
 
   const results = (search.data ?? []).filter((p) => !relatedIds.has(p.id));
 
+  async function inviteFriends() {
+    const username = me.data?.username;
+    const url = `${window.location.origin}/signup${username ? `?ref=${username}` : ''}`;
+    const text = username
+      ? `Tham gia LockFin cùng mình nhé! Kết bạn với mình @${username} để cùng theo dõi chi tiêu.`
+      : 'Tham gia LockFin cùng mình để cùng theo dõi chi tiêu nhé!';
+    if (typeof navigator !== 'undefined' && navigator.share) {
+      try {
+        await navigator.share({ title: 'LockFin', text, url });
+      } catch {
+        // User huỷ hộp chia sẻ — bỏ qua.
+      }
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(`${text} ${url}`);
+      push('Đã copy lời mời, gửi cho bạn bè nhé', 'success');
+    } catch {
+      push('Không copy được, thử lại nhé', 'error');
+    }
+  }
+
   async function copyUsername(username?: string | null) {
     if (!username) return;
     try {
@@ -246,6 +268,22 @@ export default function FriendsPage() {
             <span className="shrink-0 text-xs font-medium text-primary">Copy</span>
           </button>
         )}
+
+        {/* Invite new users to LockFin */}
+        <button
+          type="button"
+          onClick={inviteFriends}
+          className="mt-3 flex w-full items-center gap-3 rounded-2xl bg-surface px-4 py-3 text-left shadow-card transition-colors duration-fast hover:bg-surface-muted"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+            <Share2 className="h-5 w-5" />
+          </span>
+          <span className="min-w-0 flex-1">
+            <span className="block text-xs text-text-muted">Rủ bạn bè chưa dùng LockFin</span>
+            <span className="block truncate font-semibold text-text">Mời bạn bè tham gia</span>
+          </span>
+          <span className="shrink-0 text-xs font-medium text-primary">Chia sẻ</span>
+        </button>
 
         {/* Add friend */}
         <div className="relative mt-4">
