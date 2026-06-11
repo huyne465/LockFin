@@ -1,0 +1,13 @@
+# Cloud Build uploads everything not listed here, then builds via Dockerfile.
+# Keep the upload small and never ship local secrets or build artifacts.
+node_modules
+dist
+coverage
+docs
+.env
+.env.local
+*.log
+.DS_Store
+.vscode
+.git
+.gitignore

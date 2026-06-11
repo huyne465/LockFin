@@ -9,7 +9,19 @@ async function bootstrap() {
   const config = app.get(ConfigService);
 
   app.setGlobalPrefix('api');
-  app.enableCors();
+
+  // CORS: in production restrict to the configured origins (comma-separated in
+  // CORS_ORIGINS, e.g. "https://lockfin-fe.vercel.app"). With no value set we
+  // fall back to allowing all origins for local development.
+  const corsOrigins = config
+    .get<string>('CORS_ORIGINS', '')
+    .split(',')
+    .map((origin) => origin.trim())
+    .filter(Boolean);
+  app.enableCors({
+    origin: corsOrigins.length > 0 ? corsOrigins : true,
+    credentials: true,
+  });
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
