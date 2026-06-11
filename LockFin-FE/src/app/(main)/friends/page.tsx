@@ -6,6 +6,7 @@ import { ArrowLeft, Check, Clock, Copy, Search, Share2, UserPlus, X } from 'luci
 import {
   useAcceptFriendRequest,
   useFriends,
+  useFriendshipsRealtime,
   useIncomingRequests,
   useOutgoingRequests,
   useProfile,
@@ -134,6 +135,7 @@ function SectionTitle({ children, count }: { children: React.ReactNode; count?: 
 export default function FriendsPage() {
   const push = useToast((s) => s.push);
   const me = useProfile();
+  useFriendshipsRealtime(me.data?.id);
 
   const friends = useFriends();
   const incoming = useIncomingRequests();

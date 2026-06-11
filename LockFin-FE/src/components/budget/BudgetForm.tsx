@@ -1,7 +1,7 @@
 'use client';
 
 import { useMemo, useState } from 'react';
-import { Trash2, X } from 'lucide-react';
+import { Trash2, X, CircleDollarSign } from 'lucide-react';
 import { clsx } from 'clsx';
 import {
   useCategories,
@@ -133,7 +133,7 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
                     : 'border-border bg-surface text-text hover:border-primary/40',
                 )}
               >
-                <span>💰</span> Tổng chi tiêu
+                <CircleDollarSign className="h-5 w-5" /> Tổng chi tiêu
               </button>
               {catsLoading &&
                 Array.from({ length: 6 }).map((_, i) => (

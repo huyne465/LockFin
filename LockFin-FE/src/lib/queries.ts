@@ -313,6 +313,33 @@ export function useRemoveFriendship() {
   });
 }
 
+/**
+ * Subscribe to Supabase Realtime for the signed-in user's friendship changes so
+ * cả ba danh sách (bạn bè / đến / đã gửi) cập nhật sống — ví dụ khi người kia bấm
+ * accept, ô "Đang chờ" của người gửi tự đổi thành "Bạn bè" mà không cần refresh.
+ * Accept là UPDATE (PENDING→ACCEPTED) trên row sẵn có; lời mời mới là INSERT; huỷ/
+ * từ chối là DELETE. RLS đã giới hạn event chỉ tới đúng 2 người trong quan hệ, nên
+ * mọi event nhận được đều liên quan tới mình. Tự dọn channel khi unmount.
+ */
+export function useFriendshipsRealtime(meId?: string) {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!meId) return;
+    const supabase = createSupabaseBrowser();
+    const channel = supabase
+      .channel('friendships')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'friendships' },
+        () => invalidateFriendData(qc),
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [meId, qc]);
+}
+
 /* ------------------------------------------------------------------ */
 /* Reactions                                                           */
 /* ------------------------------------------------------------------ */

@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowDownLeft, ArrowUpRight, Flame, UserPlus } from 'lucide-react';
 import { clsx } from 'clsx';
-import { useFeed, useIncomingRequests, useProfile, useReactionsRealtime } from '@/lib/queries';
+import { useFeed, useFriendshipsRealtime, useIncomingRequests, useProfile, useReactionsRealtime } from '@/lib/queries';
 import { useWheelEffect } from '@/lib/useWheelEffect';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { formatRelative, formatVND } from '@/lib/format';
@@ -21,6 +21,7 @@ export default function FeedPage() {
   const wheel = useRef<HTMLUListElement | null>(null);
 
   useReactionsRealtime(profile.data?.id);
+  useFriendshipsRealtime(profile.data?.id);
 
   useEffect(() => {
     if (!sentinel.current) return;
