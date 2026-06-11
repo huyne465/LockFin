@@ -1,5 +1,7 @@
 import { useQuery, useInfiniteQuery, useMutation, useQueryClient, type QueryClient } from '@tanstack/react-query';
+import { useEffect } from 'react';
 import { api } from './api';
+import { createSupabaseBrowser } from './supabase/client';
 import type {
   Profile, Category, FeedPost, MonthStat, CategoryType,
   Friendship, FriendshipWithProfile, ProfileSummary,
@@ -346,6 +348,53 @@ function transformReactions(
   qc.setQueriesData<FeedPost[]>({ queryKey: ['posts', 'mine'] }, (old) =>
     Array.isArray(old) ? old.map((p) => (p.id === postId ? { ...p, reactions: fn(p.reactions ?? []) } : p)) : old,
   );
+}
+
+/** Nudge a single emoji's count by ±1, leaving the viewer's own `reacted` flag intact.
+ *  Dùng cho event realtime của người khác (không đổi trạng thái của mình). */
+function bumpEmoji(list: ReactionSummary[] = [], emoji: string, delta: number): ReactionSummary[] {
+  const existing = list.find((r) => r.emoji === emoji);
+  if (!existing) return delta > 0 ? [...list, { emoji, count: 1, reacted: false }] : list;
+  const count = existing.count + delta;
+  if (count <= 0) return list.filter((r) => r.emoji !== emoji);
+  return list.map((r) => (r.emoji === emoji ? { ...r, count } : r));
+}
+
+/**
+ * Subscribe to Supabase Realtime for reaction changes and patch the feed cache live —
+ * so a friend's reaction appears without a refetch. The viewer's own rows are skipped
+ * (useToggleReaction already applied them optimistically). Self-cleans on unmount.
+ */
+export function useReactionsRealtime(meId?: string) {
+  const qc = useQueryClient();
+  useEffect(() => {
+    if (!meId) return;
+    const supabase = createSupabaseBrowser();
+    const channel = supabase
+      .channel('post_reactions')
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'post_reactions' },
+        (payload) => {
+          const row = payload.new as { post_id: string; user_id: string; emoji: string };
+          if (row.user_id === meId) return;
+          transformReactions(qc, row.post_id, (r) => bumpEmoji(r, row.emoji, +1));
+        },
+      )
+      .on(
+        'postgres_changes',
+        { event: 'DELETE', schema: 'public', table: 'post_reactions' },
+        (payload) => {
+          const row = payload.old as { post_id?: string; user_id?: string; emoji?: string };
+          if (!row?.post_id || !row.emoji || row.user_id === meId) return;
+          transformReactions(qc, row.post_id, (r) => bumpEmoji(r, row.emoji!, -1));
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(channel);
+    };
+  }, [meId, qc]);
 }
 
 export function useToggleReaction() {

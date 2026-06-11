@@ -1,4 +1,5 @@
 import { BottomNav } from '@/components/BottomNav';
+import { NotificationPrompt } from '@/components/NotificationPrompt';
 
 export default function MainLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -19,6 +20,7 @@ export default function MainLayout({ children }: { children: React.ReactNode }) 
       >
         <main className="flex-1 overflow-y-auto overscroll-contain pb-24">{children}</main>
         <BottomNav />
+        <NotificationPrompt />
       </div>
     </div>
   );

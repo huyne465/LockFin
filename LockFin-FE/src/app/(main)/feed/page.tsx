@@ -4,7 +4,8 @@ import { useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowDownLeft, ArrowUpRight, Flame, UserPlus } from 'lucide-react';
 import { clsx } from 'clsx';
-import { useFeed, useIncomingRequests, useProfile } from '@/lib/queries';
+import { useFeed, useIncomingRequests, useProfile, useReactionsRealtime } from '@/lib/queries';
+import { useWheelEffect } from '@/lib/useWheelEffect';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { formatRelative, formatVND } from '@/lib/format';
 import { EmptyState } from '@/components/ui/EmptyState';
@@ -17,6 +18,9 @@ export default function FeedPage() {
   const incoming = useIncomingRequests();
   const pendingCount = incoming.data?.length ?? 0;
   const sentinel = useRef<HTMLDivElement | null>(null);
+  const wheel = useRef<HTMLUListElement | null>(null);
+
+  useReactionsRealtime(profile.data?.id);
 
   useEffect(() => {
     if (!sentinel.current) return;
@@ -29,6 +33,8 @@ export default function FeedPage() {
   }, [feed]);
 
   const posts = feed.data?.pages.flat() ?? [];
+
+  useWheelEffect(wheel, posts.length);
 
   return (
     <div className="min-h-full bg-background">
@@ -93,7 +99,7 @@ export default function FeedPage() {
         <EmptyState title="Chưa có post nào" hint="Chụp ảnh chi tiêu đầu tiên, hoặc kết bạn để xem feed của bạn bè!" />
       )}
 
-      <ul className="feed-wheel space-y-6 px-4 py-4">
+      <ul ref={wheel} className="feed-wheel space-y-6 px-4 py-4">
         {posts.map((p) => {
           const isIncome = p.categories.type === 'INCOME';
           const authorName = p.profiles.display_name?.trim() || p.profiles.username;

@@ -69,9 +69,11 @@
       0 12px 28px -14px rgba(31, 27, 22, 0.28);
   }
 
-  /* Bánh xe cuộn (scroll-driven, thuần CSS — không JS):
-     thẻ ở giữa khung nhìn dựng thẳng & rõ nét, thẻ trên/dưới nghiêng và mờ dần.
-     Gắn animation-timeline vào độ hiển thị của từng thẻ trong scroller. */
+  /* Bánh xe cuộn: thẻ ở giữa khung nhìn dựng thẳng & rõ nét, thẻ trên/dưới
+     nghiêng và mờ dần. Transform/opacity do JS điều khiển (useWheelEffect) để
+     chạy được trên mọi trình duyệt — kể cả iOS WebKit (PWA), nơi
+     `animation-timeline: view()` không được hỗ trợ. Mặc định (trước khi JS chạy
+     hoặc khi reduced-motion) là phẳng & hiện đầy đủ. */
   .feed-wheel {
     perspective: 1200px;
     perspective-origin: center;
@@ -81,24 +83,7 @@
     transform-origin: center;
     backface-visibility: hidden;
     will-change: transform, opacity;
-    animation: polaroid-wheel linear both;
-    animation-timeline: view();
-    animation-range: cover 0% cover 100%;
   }
-  .feed-card-spin:nth-child(odd)  { --tilt: 3.5deg; }
-  .feed-card-spin:nth-child(even) { --tilt: -3.5deg; }
-
-  @keyframes polaroid-wheel {
-    0%   { opacity: 0.3; transform: rotateX(36deg)  rotateZ(var(--tilt, 0deg))            scale(0.82); }
-    42%  { opacity: 1;   transform: rotateX(0deg)   rotateZ(0deg)                          scale(1); }
-    58%  { opacity: 1;   transform: rotateX(0deg)   rotateZ(0deg)                          scale(1); }
-    100% { opacity: 0.3; transform: rotateX(-36deg) rotateZ(calc(var(--tilt, 0deg) * -1)) scale(0.82); }
-  }
-}
-
-/* Trình duyệt chưa hỗ trợ scroll-timeline (Safari/Firefox) → hiển thị phẳng, đầy đủ. */
-@supports not (animation-timeline: view()) {
-  .feed-card-spin { animation: none; opacity: 1; transform: none; }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -106,5 +91,5 @@
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
   }
-  .feed-card-spin { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .feed-card-spin { opacity: 1 !important; transform: none !important; }
 }

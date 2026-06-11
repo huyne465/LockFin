@@ -37,6 +37,7 @@ export function CameraView() {
   const close = () => { setBlob(null); setPreviewUrl(null); };
 
   return (
+    <>
     <section className="fixed inset-0 z-0 flex flex-col overflow-hidden bg-[#0b0a09]">
       {/* ambient glow */}
       <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/25 blur-[90px]" />
@@ -139,8 +140,12 @@ export function CameraView() {
       </div>
 
       <input ref={fileRef} type="file" accept="image/*" hidden onChange={onPick} />
-
-      {blob && previewUrl && <UploadModal blob={blob} previewUrl={previewUrl} onClose={close} />}
     </section>
+
+    {/* Modal đặt ngoài <section z-0> để không bị stacking context của section
+        nhốt xuống dưới BottomNav (z-40) — nếu không, thanh nút "Up" ở đáy modal
+        sẽ bị nav che mất. */}
+    {blob && previewUrl && <UploadModal blob={blob} previewUrl={previewUrl} onClose={close} />}
+    </>
   );
 }

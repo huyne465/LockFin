@@ -8,6 +8,15 @@ import { useToast } from '@/components/ui/Toast';
 
 const APP_ID = process.env.NEXT_PUBLIC_ONESIGNAL_APP_ID;
 
+/** Reject after `ms` so a hung OneSignal call can't spin the button forever
+ *  (seen on iOS PWA where requestPermission/optIn can never resolve). */
+function withTimeout<T>(p: Promise<T>, ms = 12_000): Promise<T> {
+  return Promise.race([
+    p,
+    new Promise<T>((_, reject) => setTimeout(() => reject(new Error('timeout')), ms)),
+  ]);
+}
+
 /**
  * Lets the user opt in / out of web push. Reads live state from the OneSignal
  * SDK (booted by OneSignalInit) and reacts to permission / subscription changes.
@@ -56,14 +65,14 @@ export function NotificationToggle() {
     setBusy(true);
     try {
       if (enabled) {
-        await OneSignal.User.PushSubscription.optOut();
+        await withTimeout(OneSignal.User.PushSubscription.optOut());
         push('Đã tắt thông báo', 'success');
       } else {
-        await OneSignal.Notifications.requestPermission();
-        await OneSignal.User.PushSubscription.optIn();
+        await withTimeout(OneSignal.Notifications.requestPermission());
         if (OneSignal.Notifications.permissionNative === 'denied') {
           push('Trình duyệt đã chặn thông báo, bật lại trong cài đặt trình duyệt nhé', 'error');
         } else {
+          await withTimeout(OneSignal.User.PushSubscription.optIn());
           push('Đã bật thông báo', 'success');
         }
       }
