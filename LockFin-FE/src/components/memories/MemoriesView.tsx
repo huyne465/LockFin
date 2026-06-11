@@ -9,6 +9,7 @@ import { useAlbums, useMyPosts, useProfile } from '@/lib/queries';
 import { currentMonth, formatVND } from '@/lib/format';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { SmoothImage } from '@/components/ui/SmoothImage';
 import type { FeedPost } from '@/lib/types';
 import { AlbumCard } from '@/components/album/AlbumCard';
 import { AlbumForm } from '@/components/album/AlbumForm';
@@ -86,8 +87,7 @@ export function MemoriesView() {
                 onClick={() => setDayPosts([p])}
                 className="h-16 w-16 shrink-0 overflow-hidden rounded-2xl ring-1 ring-black/5 shadow-card transition-transform duration-fast active:scale-90"
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.photo_url} alt="" className="h-full w-full object-cover" />
+                <SmoothImage src={p.photo_url} className="h-full w-full" />
               </button>
             ))}
           </div>

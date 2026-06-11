@@ -2,6 +2,7 @@
 
 import { useMemo } from 'react';
 import { clsx } from 'clsx';
+import { SmoothImage } from '@/components/ui/SmoothImage';
 import type { FeedPost } from '@/lib/types';
 
 const WEEKDAYS = ['T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'CN'];
@@ -128,8 +129,7 @@ export function MemoryCalendar({
                 )}
               >
                 <div className="relative flex-1 overflow-hidden rounded-[3px] bg-surface-muted">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={cover.photo_url} alt="" className="h-full w-full object-cover" />
+                  <SmoothImage src={cover.photo_url} className="h-full w-full" />
                   {multiple && (
                     <span className="absolute right-0.5 top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-black/55 px-1 text-[8px] font-bold leading-none text-white">
                       {count}

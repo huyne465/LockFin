@@ -12,6 +12,7 @@ import {
 import { Button } from '@/components/ui/Button';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { Input } from '@/components/ui/Input';
+import { Skeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/Toast';
 import type { BudgetPeriod, BudgetStatus } from '@/lib/types';
 
@@ -34,7 +35,7 @@ function friendlyError(e: unknown): string {
 export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose: () => void }) {
   const isEdit = !!budget;
   const push = useToast((s) => s.push);
-  const { data: categories } = useCategories();
+  const { data: categories, isLoading: catsLoading } = useCategories();
   const upsert = useUpsertBudget();
   const update = useUpdateBudget();
   const remove = useDeleteBudget();
@@ -134,6 +135,10 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
               >
                 <span>💰</span> Tổng chi tiêu
               </button>
+              {catsLoading &&
+                Array.from({ length: 6 }).map((_, i) => (
+                  <Skeleton key={i} className="h-[42px] w-24 rounded-full" />
+                ))}
               {expenseCats.map((c) => (
                 <button
                   key={c.id}

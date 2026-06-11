@@ -6,6 +6,7 @@ import { clsx } from 'clsx';
 import { useMyPosts } from '@/lib/queries';
 import { currentMonth } from '@/lib/format';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { SmoothImage } from '@/components/ui/SmoothImage';
 
 function shiftMonth(month: string, delta: number) {
   const [y, m] = month.split('-').map(Number);
@@ -85,8 +86,7 @@ export function PostPicker({
                   picked ? 'ring-2 ring-primary' : 'ring-black/5',
                 )}
               >
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.photo_url} alt="" className="h-full w-full object-cover" />
+                <SmoothImage src={p.photo_url} className="h-full w-full" />
                 <span
                   className={clsx(
                     'absolute inset-0 transition-opacity duration-fast',

@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { ArrowDownLeft, ArrowUpRight, Globe, ImageIcon, Lock } from 'lucide-react';
 import { clsx } from 'clsx';
 import { formatVND } from '@/lib/format';
+import { SmoothImage } from '@/components/ui/SmoothImage';
 import type { AlbumSummary } from '@/lib/types';
 
 /** Mức dùng ngân sách chuyến → màu thanh (giống BudgetCard). */
@@ -27,18 +28,16 @@ export function AlbumCard({ album }: { album: AlbumSummary }) {
       className="group flex flex-col overflow-hidden rounded-2xl bg-surface shadow-card transition-transform duration-fast active:scale-[0.98]"
     >
       <div className="relative aspect-[4/3] w-full overflow-hidden bg-surface-muted">
-        {album.cover_photo_url ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={album.cover_photo_url}
-            alt=""
-            className="h-full w-full object-cover transition-transform duration-base group-hover:scale-105"
-          />
-        ) : (
-          <div className="flex h-full w-full items-center justify-center text-text-muted/60">
-            <ImageIcon className="h-8 w-8" />
-          </div>
-        )}
+        <SmoothImage
+          src={album.cover_photo_url}
+          className="h-full w-full"
+          imgClassName="object-cover transition-transform duration-base group-hover:scale-105"
+          fallback={
+            <div className="flex h-full w-full items-center justify-center text-text-muted/60">
+              <ImageIcon className="h-8 w-8" />
+            </div>
+          }
+        />
 
         <span className="glass-dark absolute left-2 top-2 flex h-7 items-center gap-1 rounded-full px-2 text-[11px] font-semibold text-text-inverse">
           {album.is_public ? <Globe className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}

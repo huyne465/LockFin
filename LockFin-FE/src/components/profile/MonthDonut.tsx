@@ -15,7 +15,7 @@ export function MonthDonut({ stats }: { stats: MonthStat[] }) {
       <div className="mt-2 h-56">
         <ResponsiveContainer width="100%" height="100%">
           <PieChart>
-            <Pie data={stats} dataKey="total" nameKey="category_name" innerRadius={55} outerRadius={85} strokeWidth={2} stroke="#fff">
+            <Pie data={stats} dataKey="total" nameKey="category_name" innerRadius={55} outerRadius={85} strokeWidth={2} stroke="#fff" isAnimationActive={false}>
               {stats.map((s) => <Cell key={s.category_id} fill={s.color_hex} />)}
             </Pie>
             <Tooltip

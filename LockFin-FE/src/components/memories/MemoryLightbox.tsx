@@ -4,6 +4,7 @@ import { ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { formatRelative, formatVND } from '@/lib/format';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
+import { SmoothImage } from '@/components/ui/SmoothImage';
 import type { FeedPost } from '@/lib/types';
 import { PostReactions } from '@/components/post/PostReactions';
 
@@ -40,8 +41,12 @@ export function MemoryLightbox({
               <div key={p.id} className="flex flex-col gap-3">
               <figure className="overflow-hidden rounded-[2rem] bg-black shadow-lift ring-1 ring-white/10">
                 <div className="relative aspect-square w-full">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={p.photo_url} alt={p.note ?? p.categories.name} className="h-full w-full object-cover" />
+                  <SmoothImage
+                    src={p.photo_url}
+                    alt={p.note ?? p.categories.name}
+                    className="h-full w-full"
+                    skeletonClassName="bg-white/10"
+                  />
 
                   {/* Tag Thu/Chi — màu + icon + chữ (không chỉ dựa vào màu) */}
                   <span
