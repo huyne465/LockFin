@@ -18,8 +18,10 @@
 }
 
 @layer utilities {
-  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
-  .safe-top    { padding-top:  env(safe-area-inset-top); }
+  /* Safe-area với mức tối thiểu: trên máy thật dùng notch/home-indicator,
+     ở DevTools/desktop (env()=0) vẫn còn đệm để không dính sát mép khung. */
+  .safe-bottom { padding-bottom: max(env(safe-area-inset-bottom), 0.5rem); }
+  .safe-top    { padding-top:  max(env(safe-area-inset-top), 0.5rem); }
   .numeric     { font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif; font-variant-numeric: tabular-nums; }
 
   /* Glassmorphism — frosted translucent surfaces */

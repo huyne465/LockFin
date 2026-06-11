@@ -34,7 +34,7 @@ export default function BudgetsPage() {
   const isEmpty = !isLoading && total === 0;
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-full bg-background">
       <header className="sticky top-0 z-30 glass flex items-center gap-2 px-3 py-3.5 safe-top">
         <Link
           href="/profile"
@@ -63,7 +63,6 @@ export default function BudgetsPage() {
 
         {isEmpty && (
           <EmptyState
-            icon="🎯"
             title="Chưa đặt ngân sách nào"
             hint="Đặt hạn mức theo ngày / tháng / năm để theo dõi mỗi lần chi tiêu được trừ thẳng."
           />

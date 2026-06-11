@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { ChevronRight, LogOut, Users, Wallet } from 'lucide-react';
+import { ChevronRight, LogOut, Settings, Users, Wallet } from 'lucide-react';
 import { useBudgets, useMonthStats, useProfile } from '@/lib/queries';
 import { createSupabaseBrowser } from '@/lib/supabase/client';
 import { currentMonth, formatVND } from '@/lib/format';
@@ -40,14 +40,38 @@ export default function ProfilePage() {
     window.location.assign('/login');
   }
 
+  const displayName = profile.data?.display_name?.trim() || profile.data?.username || '…';
+  const avatarInitial = displayName[0]?.toUpperCase() ?? '?';
+
   return (
     <div className="px-4 py-4">
-      <header className="mb-4 flex items-center justify-between">
-        <h1 className="font-display text-xl font-bold">Hồ sơ</h1>
+      <header className="mb-4 flex items-center justify-between gap-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <Link
+            href="/profile/settings"
+            aria-label="Cài đặt hồ sơ"
+            className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-surface-muted ring-2 ring-primary/15"
+          >
+            {profile.data?.avatar_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={profile.data.avatar_url} alt="" className="h-full w-full object-cover" />
+            ) : (
+              <span className="flex h-full w-full items-center justify-center font-display text-lg font-semibold text-text-secondary">
+                {avatarInitial}
+              </span>
+            )}
+          </Link>
+          <div className="min-w-0">
+            <h1 className="truncate font-display text-xl font-bold leading-tight">{displayName}</h1>
+            {profile.data?.username && (
+              <p className="truncate text-xs text-text-muted">@{profile.data.username}</p>
+            )}
+          </div>
+        </div>
         <select
           value={month}
           onChange={(e) => setMonth(e.target.value)}
-          className="rounded-md border border-border bg-surface px-3 py-2 text-sm"
+          className="shrink-0 rounded-md border border-border bg-surface px-3 py-2 text-sm"
         >
           {monthOptions().map((m) => <option key={m} value={m}>{m}</option>)}
         </select>
@@ -98,6 +122,17 @@ export default function ProfilePage() {
           <Users className="h-5 w-5" />
         </span>
         <span className="flex-1 font-medium text-text">Bạn bè</span>
+        <ChevronRight className="h-5 w-5 text-text-muted" />
+      </Link>
+
+      <Link
+        href="/profile/settings"
+        className="mt-3 flex items-center gap-3 rounded-lg border border-border bg-surface px-4 py-3.5 transition-colors duration-fast hover:bg-surface-muted"
+      >
+        <span className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-primary">
+          <Settings className="h-5 w-5" />
+        </span>
+        <span className="flex-1 font-medium text-text">Cài đặt</span>
         <ChevronRight className="h-5 w-5 text-text-muted" />
       </Link>
 

@@ -21,10 +21,39 @@ export const qk = {
   albums: ['albums'] as const,
   album: (id: string) => ['album', id] as const,
   userAlbums: (uid: string) => ['albums', 'user', uid] as const,
+  userProfile: (uid: string) => ['profile', 'user', uid] as const,
 };
 
 export const useProfile = () =>
   useQuery({ queryKey: qk.profile, queryFn: () => api<Profile>('/profiles/me') });
+
+/** Public profile of another user (name/avatar/username). */
+export const useUserProfile = (userId: string) =>
+  useQuery({
+    queryKey: qk.userProfile(userId),
+    queryFn: () => api<ProfileSummary>(`/profiles/${userId}`),
+    enabled: !!userId,
+  });
+
+export interface UpdateProfileInput {
+  display_name?: string;
+  avatar_url?: string | null;
+}
+
+/** Update the signed-in user's display name / avatar (username is immutable). */
+export function useUpdateProfile() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: (body: UpdateProfileInput) =>
+      api<Profile>('/profiles/me', { method: 'PATCH', body: JSON.stringify(body) }),
+    onSuccess: (next) => {
+      qc.setQueryData(qk.profile, next);
+      // Author name/avatar appears on feed + own posts.
+      qc.invalidateQueries({ queryKey: qk.feed });
+      qc.invalidateQueries({ queryKey: ['posts', 'mine'] });
+    },
+  });
+}
 
 export const useCategories = () =>
   useQuery({ queryKey: qk.categories, queryFn: () => api<Category[]>('/categories') });

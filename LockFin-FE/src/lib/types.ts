@@ -40,7 +40,7 @@ export interface FeedPost {
   created_at: string;
   /** null ⇒ post nằm ở pool (feed); có giá trị ⇒ thuộc 1 album. */
   album_id?: string | null;
-  profiles: { id: string; username: string; avatar_url: string | null };
+  profiles: { id: string; username: string; display_name: string | null; avatar_url: string | null };
   categories: Pick<Category, 'id' | 'name' | 'icon' | 'color_hex' | 'type'>;
   /** Present when the new expense touches one or more budgets (optional, backward-compatible). */
   budget_impact?: BudgetImpact[];

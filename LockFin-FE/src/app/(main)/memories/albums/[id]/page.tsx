@@ -10,9 +10,11 @@ import {
   useAlbum,
   useAddPostsToAlbum,
   useDeleteAlbum,
+  useProfile,
   useRemovePostFromAlbum,
 } from '@/lib/queries';
 import { formatVND } from '@/lib/format';
+import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { Button } from '@/components/ui/Button';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -45,7 +47,7 @@ function AddPostsSheet({ albumId, onClose }: { albumId: string; onClose: () => v
     if (!ids.length) return onClose();
     try {
       await add.mutateAsync({ id: albumId, post_ids: ids });
-      push(`Đã thêm ${ids.length} ảnh vào album 🧳`, 'success');
+      push(`Đã thêm ${ids.length} ảnh vào album`, 'success');
       onClose();
     } catch (e) {
       push(e instanceof Error ? e.message : 'Thêm thất bại, thử lại nhé.', 'error');
@@ -83,8 +85,12 @@ export default function AlbumDetailPage() {
   const push = useToast((s) => s.push);
 
   const { data: album, isLoading } = useAlbum(id);
+  const me = useProfile();
   const removePost = useRemovePostFromAlbum();
   const deleteAlbum = useDeleteAlbum();
+
+  // Outsiders can open a public album via someone's profile — they only see photos.
+  const isOwner = !!album && album.user_id === me.data?.id;
 
   const [lightbox, setLightbox] = useState<FeedPost[] | null>(null);
   const [editing, setEditing] = useState(false);
@@ -134,7 +140,7 @@ export default function AlbumDetailPage() {
   const pct = hasBudget ? Math.max(0, Math.min(1, album!.spent / album!.budget_amount!)) : 0;
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-full bg-background">
       <header className="sticky top-0 z-30 glass flex items-center gap-2 px-3 py-3.5 safe-top">
         <button
           onClick={() => router.back()}
@@ -144,7 +150,7 @@ export default function AlbumDetailPage() {
           <ArrowLeft className="h-5 w-5" />
         </button>
         <h1 className="truncate font-display text-lg font-bold">{album?.name ?? 'Album'}</h1>
-        {album && (
+        {isOwner && (
           <div className="ml-auto flex items-center gap-1">
             <button
               onClick={() => setEditing(true)}
@@ -197,30 +203,32 @@ export default function AlbumDetailPage() {
               )}
             </div>
 
-            {/* Tổng quan Thu / Chi — màu đi kèm icon + nhãn (không chỉ dựa vào màu) */}
-            <div className="mt-4 grid grid-cols-2 gap-3">
-              <div className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-card ring-1 ring-danger/15">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger text-white">
-                  <ArrowUpRight className="h-5 w-5" strokeWidth={2.5} />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Chi</p>
-                  <p className="numeric truncate text-lg font-bold leading-tight text-text">{formatVND(album.spent)}</p>
+            {/* Tổng quan Thu / Chi — chỉ chủ album mới thấy số tiền */}
+            {isOwner && (
+              <div className="mt-4 grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-card ring-1 ring-danger/15">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-danger text-white">
+                    <ArrowUpRight className="h-5 w-5" strokeWidth={2.5} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Chi</p>
+                    <p className="numeric truncate text-lg font-bold leading-tight text-text">{formatVND(album.spent)}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-card ring-1 ring-success/15">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success text-white">
+                    <ArrowDownLeft className="h-5 w-5" strokeWidth={2.5} />
+                  </span>
+                  <div className="min-w-0">
+                    <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Thu</p>
+                    <p className="numeric truncate text-lg font-bold leading-tight text-text">{formatVND(album.income)}</p>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-card ring-1 ring-success/15">
-                <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-success text-white">
-                  <ArrowDownLeft className="h-5 w-5" strokeWidth={2.5} />
-                </span>
-                <div className="min-w-0">
-                  <p className="text-xs font-semibold uppercase tracking-wide text-text-secondary">Thu</p>
-                  <p className="numeric truncate text-lg font-bold leading-tight text-text">{formatVND(album.income)}</p>
-                </div>
-              </div>
-            </div>
+            )}
 
             {/* Thanh ngân sách chuyến */}
-            {hasBudget && (
+            {isOwner && hasBudget && (
               <div className="mt-4 rounded-2xl bg-surface px-4 py-3.5 shadow-card">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium text-text">Ngân sách chuyến</span>
@@ -245,7 +253,7 @@ export default function AlbumDetailPage() {
             )}
 
             {/* Đã chi — gom theo nguồn (category), expand/collapse */}
-            {breakdown.length > 0 && (
+            {isOwner && breakdown.length > 0 && (
               <div className="mt-3 overflow-hidden rounded-2xl bg-surface shadow-card">
                 <button
                   type="button"
@@ -269,7 +277,7 @@ export default function AlbumDetailPage() {
                         <li key={b.id}>
                           <div className="flex items-center justify-between gap-2 text-sm">
                             <span className="flex min-w-0 items-center gap-2">
-                              <span className="text-base">{b.icon}</span>
+                              <CategoryIcon icon={b.icon} className="text-base" />
                               <span className="truncate text-text">{b.name}</span>
                               <span className="shrink-0 text-xs text-text-muted">{b.count} khoản</span>
                             </span>
@@ -287,17 +295,19 @@ export default function AlbumDetailPage() {
             )}
 
             {/* Thêm ảnh */}
-            <button
-              type="button"
-              onClick={() => setAdding(true)}
-              className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border bg-surface-muted/40 px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors duration-fast hover:border-primary/40"
-            >
-              <Plus className="h-4 w-4" /> Thêm ảnh từ pool
-            </button>
+            {isOwner && (
+              <button
+                type="button"
+                onClick={() => setAdding(true)}
+                className="mt-4 flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-border bg-surface-muted/40 px-3 py-2.5 text-sm font-medium text-text-secondary transition-colors duration-fast hover:border-primary/40"
+              >
+                <Plus className="h-4 w-4" /> Thêm ảnh từ pool
+              </button>
+            )}
 
             {/* Lưới ảnh */}
             {album.posts.length === 0 ? (
-              <EmptyState icon="🖼️" title="Album chưa có ảnh" hint="Thêm ảnh từ pool hoặc up ảnh mới vào album này." />
+              <EmptyState icon="🖼️" title="Album chưa có ảnh" hint={isOwner ? 'Thêm ảnh từ pool hoặc up ảnh mới vào album này.' : 'Album này chưa có ảnh công khai.'} />
             ) : (
               <div className="mt-4 grid grid-cols-3 gap-1.5">
                 {album.posts.map((p) => (
@@ -306,13 +316,15 @@ export default function AlbumDetailPage() {
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={p.photo_url} alt="" className="h-full w-full object-cover" />
                     </button>
-                    <button
-                      onClick={() => onRemove(p.id)}
-                      aria-label="Gỡ ảnh"
-                      className="glass-dark absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full text-text-inverse opacity-0 transition-opacity duration-fast group-hover:opacity-100"
-                    >
-                      <X className="h-3.5 w-3.5" />
-                    </button>
+                    {isOwner && (
+                      <button
+                        onClick={() => onRemove(p.id)}
+                        aria-label="Gỡ ảnh"
+                        className="glass-dark absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full text-text-inverse opacity-0 transition-opacity duration-fast group-hover:opacity-100"
+                      >
+                        <X className="h-3.5 w-3.5" />
+                      </button>
+                    )}
                   </div>
                 ))}
               </div>
@@ -321,7 +333,7 @@ export default function AlbumDetailPage() {
         )}
       </div>
 
-      {lightbox && <MemoryLightbox posts={lightbox} onClose={() => setLightbox(null)} />}
+      {lightbox && <MemoryLightbox posts={lightbox} hideAmounts={!isOwner} onClose={() => setLightbox(null)} />}
       {editing && album && <AlbumForm album={album} onClose={() => setEditing(false)} />}
       {adding && <AddPostsSheet albumId={id} onClose={() => setAdding(false)} />}
     </div>

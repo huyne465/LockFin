@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ProfilesRepository, ProfileRow, ProfileSummary } from './profiles.repository';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class ProfilesService {
@@ -7,6 +8,20 @@ export class ProfilesService {
 
   getProfile(userId: string): Promise<ProfileRow> {
     return this.repo.findById(userId);
+  }
+
+  /** Public profile of another user (name/avatar/username only). */
+  getPublicProfile(userId: string): Promise<ProfileSummary> {
+    return this.repo.findSummaryById(userId);
+  }
+
+  /** Update the signed-in user's editable fields. Username is never changed. */
+  updateProfile(userId: string, dto: UpdateProfileDto): Promise<ProfileRow> {
+    const fields: Partial<Pick<ProfileRow, 'display_name' | 'avatar_url'>> = {};
+    if (dto.display_name !== undefined) fields.display_name = dto.display_name.trim();
+    if (dto.avatar_url !== undefined) fields.avatar_url = dto.avatar_url;
+    if (Object.keys(fields).length === 0) return this.repo.findById(userId);
+    return this.repo.updateProfile(userId, fields);
   }
 
   /** Find other users to send a friend request to. */

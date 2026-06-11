@@ -3,10 +3,20 @@
 import { ArrowDownLeft, ArrowUpRight, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { formatRelative, formatVND } from '@/lib/format';
+import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import type { FeedPost } from '@/lib/types';
 import { PostReactions } from '@/components/post/PostReactions';
 
-export function MemoryLightbox({ posts, onClose }: { posts: FeedPost[]; onClose: () => void }) {
+export function MemoryLightbox({
+  posts,
+  onClose,
+  hideAmounts = false,
+}: {
+  posts: FeedPost[];
+  onClose: () => void;
+  /** When viewing someone else's public album, hide the money figures. */
+  hideAmounts?: boolean;
+}) {
   return (
     <div className="fixed inset-0 z-50 flex flex-col bg-black/85 backdrop-blur-md safe-top safe-bottom animate-fade-up">
       <header className="flex items-center justify-between px-5 py-4">
@@ -48,14 +58,16 @@ export function MemoryLightbox({ posts, onClose }: { posts: FeedPost[]; onClose:
                     <div className="flex items-end justify-between gap-3">
                       <div className="min-w-0">
                         <div className="flex items-center gap-1.5 text-sm">
-                          <span>{p.categories.icon}</span>
+                          <CategoryIcon icon={p.categories.icon} />
                           <span className="truncate">{p.categories.name}</span>
                         </div>
                         {p.note && <p className="mt-1 truncate text-sm opacity-90">{p.note}</p>}
                       </div>
-                      <span className={clsx('numeric shrink-0 text-lg font-bold', isIncome ? 'text-emerald-300' : 'text-rose-300')}>
-                        {isIncome ? '+' : '−'}{formatVND(p.amount)}
-                      </span>
+                      {!hideAmounts && (
+                        <span className={clsx('numeric shrink-0 text-lg font-bold', isIncome ? 'text-emerald-300' : 'text-rose-300')}>
+                          {isIncome ? '+' : '−'}{formatVND(p.amount)}
+                        </span>
+                      )}
                     </div>
                     <p className="mt-1 text-[11px] opacity-75">{formatRelative(p.created_at)}</p>
                   </figcaption>

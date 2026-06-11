@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ImageIcon, Lock, LockOpen, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { createSupabaseBrowser } from '@/lib/supabase/client';
+import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { useAlbums, useBudgets, useCategories, useCreatePost, useProfile } from '@/lib/queries';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
@@ -90,7 +91,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
       if (albumId) {
         // Ảnh vào album không lên feed bạn bè → đưa user về xem album.
         const name = albums?.find((a) => a.id === albumId)?.name ?? 'album';
-        push(`Đã thêm vào album ${name} 🧳`, 'success');
+        push(`Đã thêm vào album ${name}`, 'success');
         router.push(`/memories/albums/${albumId}`);
         return;
       }
@@ -102,7 +103,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
       } else if (month) {
         push(`Đã up 🔥 — còn ${formatVND(month.remaining)} trong ngân sách tháng`, 'success');
       } else {
-        push('Đã up lên 🔥', 'success');
+        push('Đã up lên', 'success');
       }
       router.push('/feed');
     } catch (e: any) {
@@ -151,7 +152,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
                           : 'border-border bg-surface text-text hover:border-primary/40',
                       )}
                     >
-                      <span className="text-base">{c.icon}</span>
+                      <CategoryIcon icon={c.icon} className="text-base" />
                       <span className="text-sm font-medium">{c.name}</span>
                     </button>
                   ))}
@@ -175,7 +176,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
                 return (
                   <li key={b.id} className="flex items-center justify-between gap-2 text-sm">
                     <span className="flex min-w-0 items-center gap-1.5 text-text">
-                      <span>{icon}</span>
+                      <CategoryIcon icon={icon} />
                       <span className="truncate">{name}</span>
                       <span className="shrink-0 text-text-muted">· {PERIOD_LABEL[b.period_type]}</span>
                     </span>
@@ -223,7 +224,6 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
                 : 'border-border bg-surface text-text hover:border-primary/40',
             )}
           >
-            <span className="text-base">📷</span>
             <span className="text-sm font-medium">Pool</span>
           </button>
           {(albums ?? []).map((a) => (
@@ -303,7 +303,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
 
       <div className="fixed inset-x-0 bottom-0 border-t border-border bg-surface px-4 py-4 safe-bottom">
         <Button className="w-full text-base" loading={uploading} onClick={onSubmit}>
-          {albumId ? 'Thêm vào album 🧳' : 'Up lên 🔥'}
+          {albumId ? 'Thêm vào album' : 'Up'}
         </Button>
       </div>
     </div>

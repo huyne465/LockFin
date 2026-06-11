@@ -2,6 +2,7 @@
 
 import { clsx } from 'clsx';
 import { formatVND } from '@/lib/format';
+import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import type { BudgetStatus } from '@/lib/types';
 
 /** Visual state derived from how much of the budget is used up. */
@@ -37,7 +38,7 @@ export function BudgetCard({ budget, onEdit }: { budget: BudgetStatus; onEdit: (
     >
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2">
-          <span className="text-lg">{icon}</span>
+          <CategoryIcon icon={icon} className="text-lg" />
           <span className="truncate font-medium text-text">{name}</span>
         </div>
         {budget.is_over ? (

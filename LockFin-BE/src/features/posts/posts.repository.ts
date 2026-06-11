@@ -54,7 +54,7 @@ export class PostsRepository {
     if (authorIds.length === 0) return [];
     const { data, error } = await this.supabase.admin
       .from(this.TABLE)
-      .select('*, profiles!inner(id, username, avatar_url), categories(id, name, icon, color_hex, type)')
+      .select('*, profiles!inner(id, username, display_name, avatar_url), categories(id, name, icon, color_hex, type)')
       .in('user_id', authorIds)
       .eq('is_private', false)
       .is('album_id', null) // posts filed into an album are viewed per-album, not in the pool feed
@@ -68,7 +68,7 @@ export class PostsRepository {
   async mine(userId: string, month?: string, limit = 200, offset = 0): Promise<PostRow[]> {
     let query = this.supabase.admin
       .from(this.TABLE)
-      .select('*, profiles!inner(id, username, avatar_url), categories(id, name, icon, color_hex, type)')
+      .select('*, profiles!inner(id, username, display_name, avatar_url), categories(id, name, icon, color_hex, type)')
       .eq('user_id', userId);
 
     if (month) {

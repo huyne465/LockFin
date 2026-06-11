@@ -37,7 +37,7 @@ export function CameraView() {
   const close = () => { setBlob(null); setPreviewUrl(null); };
 
   return (
-    <section className="relative flex h-dvh w-full flex-col overflow-hidden bg-[#0b0a09]">
+    <section className="fixed inset-0 z-0 flex flex-col overflow-hidden bg-[#0b0a09]">
       {/* ambient glow */}
       <div className="pointer-events-none absolute -top-32 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-primary/25 blur-[90px]" />
       <div className="pointer-events-none absolute bottom-0 left-1/2 h-64 w-64 -translate-x-1/2 rounded-full bg-cta/20 blur-[90px]" />

@@ -4,6 +4,7 @@ import { SupabaseService } from '../../core/supabase/supabase.service';
 export interface ProfileRow {
   id: string;
   username: string | null;
+  display_name: string | null;
   avatar_url: string | null;
   current_streak: number;
   highest_streak: number;
@@ -31,6 +32,32 @@ export class ProfilesRepository {
       .from(this.TABLE)
       .select('*')
       .eq('id', userId)
+      .single();
+    if (error || !data) throw new NotFoundException('Profile not found');
+    return data as ProfileRow;
+  }
+
+  /** Public, lightweight projection of a single profile (for viewing another user). */
+  async findSummaryById(userId: string): Promise<ProfileSummary> {
+    const { data, error } = await this.supabase.admin
+      .from(this.TABLE)
+      .select(SUMMARY_FIELDS)
+      .eq('id', userId)
+      .single();
+    if (error || !data) throw new NotFoundException('Profile not found');
+    return data as ProfileSummary;
+  }
+
+  /** Update editable profile fields (display_name, avatar_url). Username is immutable. */
+  async updateProfile(
+    userId: string,
+    fields: Partial<Pick<ProfileRow, 'display_name' | 'avatar_url'>>,
+  ): Promise<ProfileRow> {
+    const { data, error } = await this.supabase.admin
+      .from(this.TABLE)
+      .update(fields)
+      .eq('id', userId)
+      .select('*')
       .single();
     if (error || !data) throw new NotFoundException('Profile not found');
     return data as ProfileRow;

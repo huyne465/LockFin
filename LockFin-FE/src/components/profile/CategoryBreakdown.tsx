@@ -1,4 +1,5 @@
 import { formatVND } from '@/lib/format';
+import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import type { MonthStat } from '@/lib/types';
 
 export function CategoryBreakdown({ stats }: { stats: MonthStat[] }) {
@@ -13,7 +14,7 @@ export function CategoryBreakdown({ stats }: { stats: MonthStat[] }) {
             <li key={s.category_id}>
               <div className="flex items-center justify-between text-sm">
                 <span className="flex items-center gap-2">
-                  <span>{s.icon}</span>
+                  <CategoryIcon icon={s.icon} />
                   <span className="font-medium">{s.category_name}</span>
                 </span>
                 <span className="numeric font-semibold">{formatVND(Number(s.total))}</span>

@@ -10,6 +10,7 @@ import {
   useUpsertBudget,
 } from '@/lib/queries';
 import { Button } from '@/components/ui/Button';
+import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
 import type { BudgetPeriod, BudgetStatus } from '@/lib/types';
@@ -56,7 +57,7 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
     try {
       if (isEdit) {
         await update.mutateAsync({ id: budget!.id, amount: amt });
-        push('Đã cập nhật hạn mức 👍', 'success');
+        push('Đã cập nhật hạn mức', 'success');
       } else {
         await upsert.mutateAsync({
           category_id: categoryId,
@@ -64,7 +65,7 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
           period_start: todayIso(),
           amount: amt,
         });
-        push('Đã đặt ngân sách 🎯', 'success');
+        push('Đã đặt ngân sách', 'success');
       }
       onClose();
     } catch (e) {
@@ -145,7 +146,7 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
                       : 'border-border bg-surface text-text hover:border-primary/40',
                   )}
                 >
-                  <span>{c.icon}</span> {c.name}
+                  <CategoryIcon icon={c.icon} /> {c.name}
                 </button>
               ))}
             </div>

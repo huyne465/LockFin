@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Check, Clock, Search, UserPlus, X } from 'lucide-react';
+import { ArrowLeft, Check, Clock, Copy, Search, UserPlus, X } from 'lucide-react';
 import {
   useAcceptFriendRequest,
   useFriends,
@@ -52,9 +52,17 @@ function Avatar({ profile, size = 44 }: { profile?: ProfileSummary | null; size?
   );
 }
 
-function Row({ profile, children }: { profile?: ProfileSummary | null; children?: React.ReactNode }) {
-  return (
-    <li className="flex items-center gap-3 rounded-2xl bg-surface px-3.5 py-2.5 shadow-card">
+function Row({
+  profile,
+  href,
+  children,
+}: {
+  profile?: ProfileSummary | null;
+  href?: string;
+  children?: React.ReactNode;
+}) {
+  const inner = (
+    <>
       <Avatar profile={profile} />
       <div className="min-w-0 flex-1">
         <p className="truncate font-medium text-text">{nameOf(profile)}</p>
@@ -62,6 +70,17 @@ function Row({ profile, children }: { profile?: ProfileSummary | null; children?
           <p className="truncate text-xs text-text-muted">@{profile.username}</p>
         )}
       </div>
+    </>
+  );
+  return (
+    <li className="flex items-center gap-3 rounded-2xl bg-surface px-3.5 py-2.5 shadow-card">
+      {href ? (
+        <Link href={href} className="flex min-w-0 flex-1 items-center gap-3">
+          {inner}
+        </Link>
+      ) : (
+        <div className="flex min-w-0 flex-1 items-center gap-3">{inner}</div>
+      )}
       <div className="flex shrink-0 items-center gap-1.5">{children}</div>
     </li>
   );
@@ -150,6 +169,16 @@ export default function FriendsPage() {
 
   const results = (search.data ?? []).filter((p) => !relatedIds.has(p.id));
 
+  async function copyUsername(username?: string | null) {
+    if (!username) return;
+    try {
+      await navigator.clipboard.writeText(`@${username}`);
+      push('Đã copy username 📋', 'success');
+    } catch {
+      push('Không copy được, thử lại nhé', 'error');
+    }
+  }
+
   async function onSend(p: ProfileSummary) {
     try {
       const res = await sendRequest.mutateAsync(p.id);
@@ -187,7 +216,7 @@ export default function FriendsPage() {
   const friendsList = friends.data ?? [];
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-full bg-background">
       <header className="sticky top-0 z-30 glass flex items-center gap-2 px-3 py-3.5 safe-top">
         <Link
           href="/profile"
@@ -200,6 +229,24 @@ export default function FriendsPage() {
       </header>
 
       <div className="px-4 pb-8">
+        {/* Share your own username so friends can add you */}
+        {me.data?.username && (
+          <button
+            type="button"
+            onClick={() => copyUsername(me.data?.username)}
+            className="mt-4 flex w-full items-center gap-3 rounded-2xl bg-primary/5 px-4 py-3 text-left ring-1 ring-primary/15 transition-colors duration-fast hover:bg-primary/10"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+              <Copy className="h-5 w-5" />
+            </span>
+            <span className="min-w-0 flex-1">
+              <span className="block text-xs text-text-muted">Username của bạn — gửi để bạn bè kết bạn</span>
+              <span className="block truncate font-semibold text-text">@{me.data.username}</span>
+            </span>
+            <span className="shrink-0 text-xs font-medium text-primary">Copy</span>
+          </button>
+        )}
+
         {/* Add friend */}
         <div className="relative mt-4">
           <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-text-muted" />
@@ -220,7 +267,13 @@ export default function FriendsPage() {
               </li>
             )}
             {results.map((p) => (
-              <Row key={p.id} profile={p}>
+              <Row key={p.id} profile={p} href={`/profile/${p.id}`}>
+                <IconButton
+                  label="Copy username"
+                  onClick={() => copyUsername(p.username)}
+                >
+                  <Copy className="h-4 w-4" />
+                </IconButton>
                 <IconButton
                   label="Kết bạn"
                   tone="primary"
@@ -301,7 +354,10 @@ export default function FriendsPage() {
           {friendsList.map((f) => {
             const other = f.requester_id === me.data?.id ? f.receiver : f.requester;
             return (
-              <Row key={f.id} profile={other}>
+              <Row key={f.id} profile={other} href={other ? `/profile/${other.id}` : undefined}>
+                <IconButton label="Copy username" onClick={() => copyUsername(other?.username)}>
+                  <Copy className="h-4 w-4" />
+                </IconButton>
                 <IconButton
                   label="Huỷ kết bạn"
                   tone="danger"

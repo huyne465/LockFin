@@ -86,31 +86,57 @@ export function MemoryCalendar({
             else if (p.categories.type === 'EXPENSE') chi += p.amount;
           }
 
+          const count = dayPosts!.length;
+          const multiple = count > 1;
+          // Ring tài chính: tinh tế (1px) để khung vẫn giữ chất polaroid trắng sạch.
+          const ring =
+            thu > chi
+              ? 'ring-success/60'
+              : chi > thu
+                ? 'ring-danger/60'
+                : isToday
+                  ? 'ring-primary/60'
+                  : 'ring-black/[0.06]';
+
           return (
             <button
               key={day}
               onClick={() => onSelectDay(dayPosts!)}
-              className={clsx(
-                'group aspect-square rounded-2xl bg-white p-[3px] shadow-card',
-                'transition-transform duration-fast ease-spring active:scale-90',
-                thu > chi
-                  ? 'ring-2 ring-success'
-                  : chi > thu
-                    ? 'ring-2 ring-danger'
-                    : isToday
-                      ? 'ring-2 ring-primary'
-                      : 'ring-1 ring-border',
-              )}
+              aria-label={`Ngày ${day}, ${count} kỷ niệm`}
+              className="group relative aspect-square transition-transform duration-fast ease-spring active:scale-90"
             >
-              <div className="relative h-full w-full overflow-hidden rounded-[0.85rem]">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={cover.photo_url} alt="" className="h-full w-full object-cover transition-transform duration-base group-hover:scale-105" />
-                <span className="absolute left-1 top-1 rounded-md bg-black/45 px-1 text-[9px] font-semibold leading-tight text-white backdrop-blur">{day}</span>
-                {dayPosts!.length > 1 && (
-                  <span className="absolute bottom-1 right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-cta px-1 text-[9px] font-bold text-white shadow">
-                    {dayPosts!.length}
-                  </span>
+              {/* Polaroid xếp chồng phía sau khi ngày có nhiều ảnh — fan ra khi hover. */}
+              {multiple && (
+                <>
+                  <span
+                    aria-hidden
+                    className="absolute inset-[2px] origin-bottom rotate-[6deg] rounded-[5px] bg-white shadow-card ring-1 ring-black/[0.06] transition-transform duration-base ease-spring group-hover:rotate-[11deg]"
+                  />
+                  <span
+                    aria-hidden
+                    className="absolute inset-[2px] origin-bottom -rotate-[5deg] rounded-[5px] bg-white shadow-card ring-1 ring-black/[0.06] transition-transform duration-base ease-spring group-hover:-rotate-[9deg]"
+                  />
+                </>
+              )}
+
+              {/* Polaroid mặt trước: viền trắng đều 3 cạnh, dải caption dưới dày hơn. */}
+              <div
+                className={clsx(
+                  'relative flex h-full flex-col rounded-[5px] bg-white p-[3px] pb-[6px] shadow-card ring-1',
+                  'transition-transform duration-base ease-spring group-hover:-rotate-2',
+                  ring,
                 )}
+              >
+                <div className="relative flex-1 overflow-hidden rounded-[3px] bg-surface-muted">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={cover.photo_url} alt="" className="h-full w-full object-cover" />
+                  {multiple && (
+                    <span className="absolute right-0.5 top-0.5 flex h-3.5 min-w-3.5 items-center justify-center rounded-full bg-black/55 px-1 text-[8px] font-bold leading-none text-white">
+                      {count}
+                    </span>
+                  )}
+                </div>
+                <span className="mt-[3px] text-center text-[10px] font-semibold leading-none text-text-muted">{day}</span>
               </div>
             </button>
           );

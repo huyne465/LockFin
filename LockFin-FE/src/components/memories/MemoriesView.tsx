@@ -55,7 +55,7 @@ export function MemoriesView() {
   }, [list]);
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-full bg-background">
       {/* Header */}
       <header className="sticky top-0 z-30 glass flex items-center justify-between px-5 py-3.5 safe-top">
         <span className="w-10" />
@@ -96,7 +96,7 @@ export function MemoriesView() {
         {/* Albums */}
         <section className="mb-5">
           <div className="mb-2.5 flex items-center justify-between px-1">
-            <h2 className="font-display text-base font-bold text-text">Album 🧳</h2>
+            <h2 className="font-display text-base font-bold text-text">Album</h2>
             <button
               type="button"
               onClick={() => setCreatingAlbum(true)}
@@ -117,7 +117,7 @@ export function MemoriesView() {
               onClick={() => setCreatingAlbum(true)}
               className="flex w-full flex-col items-center gap-1 rounded-2xl border border-dashed border-border bg-surface-muted/40 px-6 py-7 text-center transition-colors duration-fast hover:border-primary/40"
             >
-              <span className="text-3xl">🧳</span>
+              <span className="text-3xl"></span>
               <span className="text-sm font-semibold text-text">Tạo album cho chuyến đi đầu tiên</span>
               <span className="text-xs text-text-muted">Gom chi tiêu một chuyến vào chung một nơi.</span>
             </button>

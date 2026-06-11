@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowDownLeft, ArrowUpRight, Flame, UserPlus } from 'lucide-react';
 import { clsx } from 'clsx';
 import { useFeed, useIncomingRequests, useProfile } from '@/lib/queries';
+import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { formatRelative, formatVND } from '@/lib/format';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
@@ -30,7 +31,7 @@ export default function FeedPage() {
   const posts = feed.data?.pages.flat() ?? [];
 
   return (
-    <div className="min-h-dvh bg-background">
+    <div className="min-h-full bg-background">
       <header className="sticky top-0 z-30 glass flex items-center justify-between px-4 py-3 safe-top">
         <div className="flex items-center gap-2.5">
           <span className="h-9 w-9 overflow-hidden rounded-full ring-2 ring-primary/20">
@@ -75,13 +76,14 @@ export default function FeedPage() {
       )}
 
       {!feed.isLoading && posts.length === 0 && (
-        <EmptyState icon="📷" title="Chưa có post nào" hint="Chụp ảnh chi tiêu đầu tiên, hoặc kết bạn để xem feed của bạn bè!" />
+        <EmptyState title="Chưa có post nào" hint="Chụp ảnh chi tiêu đầu tiên, hoặc kết bạn để xem feed của bạn bè!" />
       )}
 
       <ul className="space-y-5 p-4">
         {posts.map((p) => {
           const isIncome = p.categories.type === 'INCOME';
-          const initial = p.profiles.username?.[0]?.toUpperCase() ?? '?';
+          const authorName = p.profiles.display_name?.trim() || p.profiles.username;
+          const initial = authorName?.[0]?.toUpperCase() ?? '?';
           return (
             <li
               key={p.id}
@@ -101,7 +103,7 @@ export default function FeedPage() {
                       initial
                     )}
                   </span>
-                  <span className="text-xs font-medium">{p.profiles.username}</span>
+                  <span className="text-xs font-medium">{authorName}</span>
                 </div>
 
                 {/* Tag Thu/Chi — màu + icon + chữ */}
@@ -119,7 +121,7 @@ export default function FeedPage() {
                   <div className="flex items-end justify-between gap-3">
                     <div className="min-w-0">
                       <div className="flex items-center gap-1.5 text-sm">
-                        <span>{p.categories.icon}</span>
+                        <CategoryIcon icon={p.categories.icon} />
                         <span className="truncate">{p.categories.name}</span>
                       </div>
                       {p.note && <p className="mt-1 truncate text-sm opacity-90">{p.note}</p>}

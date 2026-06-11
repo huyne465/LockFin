@@ -57,7 +57,7 @@ export function AlbumForm({ album, onClose }: { album?: AlbumSummary | AlbumDeta
           start_date: startDate || undefined,
           end_date: endDate || undefined,
         });
-        push('Đã cập nhật album 👍', 'success');
+        push('Đã cập nhật album', 'success');
         onClose();
       } else {
         const created: AlbumDetail = await create.mutateAsync({
@@ -69,7 +69,7 @@ export function AlbumForm({ album, onClose }: { album?: AlbumSummary | AlbumDeta
           end_date: endDate || undefined,
           post_ids: postIds.length ? postIds : undefined,
         });
-        push('Đã tạo album 🧳', 'success');
+        push('Đã tạo album', 'success');
         onClose();
         router.push(`/memories/albums/${created.id}`);
       }
@@ -161,7 +161,7 @@ export function AlbumForm({ album, onClose }: { album?: AlbumSummary | AlbumDeta
 
         <div className="mt-6">
           <Button className="w-full" loading={saving} onClick={onSubmit}>
-            {isEdit ? 'Lưu' : 'Tạo album 🧳'}
+            {isEdit ? 'Lưu' : 'Tạo album'}
           </Button>
         </div>
       </div>
