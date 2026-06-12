@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Bell, Camera, KeyRound, Loader2, UserRound } from 'lucide-react';
+import { ArrowLeft, Bell, Camera, KeyRound, Loader2, Moon, Palette, Sun, UserRound } from 'lucide-react';
 import { useProfile, useUpdateProfile } from '@/lib/queries';
 import { createSupabaseBrowser } from '@/lib/supabase/client';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
 import { NotificationToggle } from '@/components/NotificationToggle';
+import { useTheme } from '@/lib/useTheme';
 
 function Card({ title, icon, children }: { title: string; icon: React.ReactNode; children: React.ReactNode }) {
   return (
@@ -19,6 +20,36 @@ function Card({ title, icon, children }: { title: string; icon: React.ReactNode;
       </h2>
       {children}
     </section>
+  );
+}
+
+/** Segmented control chọn chế độ Sáng / Tối. */
+function ThemeChooser() {
+  const { theme, setTheme } = useTheme();
+  const options = [
+    { key: 'light' as const, label: 'Sáng', icon: Sun },
+    { key: 'dark' as const, label: 'Tối', icon: Moon },
+  ];
+  return (
+    <div className="grid grid-cols-2 gap-2 rounded-xl bg-surface-muted p-1">
+      {options.map(({ key, label, icon: Icon }) => {
+        const active = theme === key;
+        return (
+          <button
+            key={key}
+            type="button"
+            onClick={() => setTheme(key)}
+            aria-pressed={active}
+            className={`flex items-center justify-center gap-2 rounded-lg px-3 py-2.5 text-sm font-semibold transition-colors duration-base ${
+              active ? 'bg-surface text-text shadow-card' : 'text-text-muted hover:text-text-secondary'
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
@@ -179,6 +210,11 @@ export default function ProfileSettingsPage() {
           >
             Lưu thay đổi
           </Button>
+        </Card>
+
+        {/* Appearance */}
+        <Card title="Giao diện" icon={<Palette className="h-4 w-4" />}>
+          <ThemeChooser />
         </Card>
 
         {/* Notifications */}

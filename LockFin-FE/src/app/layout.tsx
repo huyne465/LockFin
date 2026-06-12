@@ -16,16 +16,28 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: '#FF6B6B',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#FF6B6B' },
+    { media: '(prefers-color-scheme: dark)', color: '#0B0C11' },
+  ],
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
   viewportFit: 'cover',
 };
 
+/**
+ * No-FOUC: set data-theme trước khi paint để tránh nháy sáng→tối.
+ * Ưu tiên lựa chọn đã lưu, nếu chưa có thì theo cài đặt hệ thống.
+ */
+const themeScript = `(function(){try{var t=localStorage.getItem('lockfin-theme');if(t!=='dark'&&t!=='light'){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}document.documentElement.setAttribute('data-theme',t);}catch(e){}})();`;
+
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="vi" className={`${inter.variable} ${jakarta.variable}`}>
+    <html lang="vi" className={`${inter.variable} ${jakarta.variable}`} suppressHydrationWarning>
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeScript }} />
+      </head>
       <body>
         <Providers>{children}</Providers>
         <ToastViewport />

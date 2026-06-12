@@ -1,30 +1,40 @@
 /**
- * LockFin design tokens — derived from docs/design-system-brief.md
- * Style: Soft UI Evolution + Habit Tracker accents. Light mode only (v1).
+ * LockFin design tokens.
+ * Style: Soft UI Evolution + Habit Tracker accents.
+ *
+ * Colors are driven by CSS custom properties (see globals.css) so the app can
+ * switch between the light "Soft UI" palette and the dark "Midnight Pop" theme.
+ * Tailwind references them via `rgb(var(--x) / <alpha-value>)`, so every
+ * `/opacity` modifier keeps working in both themes. The concrete light/dark
+ * channel values live in globals.css — this file only names the tokens.
  */
+
+/** Wrap a channel-triplet CSS var so Tailwind opacity modifiers compose. */
+const c = (name: string) => `rgb(var(${name}) / <alpha-value>)`;
+
 export const tokens = {
   color: {
-    primary: '#FF6B6B',
-    primaryHover: '#FF5252',
-    secondary: '#FFD9B3',
-    cta: '#FF8A3D',
-    surface: '#FFFFFF',
-    surfaceMuted: '#FFF6F2',
-    background: '#FFF8F4',
-    border: '#F1E3D8',
+    primary: c('--c-primary'),
+    primaryHover: c('--c-primary-hover'),
+    secondary: c('--c-secondary'),
+    cta: c('--c-cta'),
+    surface: c('--c-surface'),
+    surfaceMuted: c('--c-surface-muted'),
+    background: c('--c-background'),
+    border: c('--c-border'),
     text: {
-      primary: '#1F1B16',
-      secondary: '#5B5249',
-      muted: '#8A8078',
-      inverse: '#FFFFFF',
+      primary: c('--c-text'),
+      secondary: c('--c-text-secondary'),
+      muted: c('--c-text-muted'),
+      inverse: c('--c-text-inverse'),
     },
     semantic: {
-      success: '#2BB673',
-      danger: '#E63946',
-      warning: '#F4A261',
-      info: '#4A90E2',
+      success: c('--c-success'),
+      danger: c('--c-danger'),
+      warning: c('--c-warning'),
+      info: c('--c-info'),
     },
-    streak: '#FF7A1A',
+    streak: c('--c-streak'),
   },
   font: {
     sans: "'Inter', system-ui, -apple-system, Segoe UI, sans-serif",
@@ -32,10 +42,10 @@ export const tokens = {
   },
   radius: { sm: '0.5rem', md: '0.875rem', lg: '1.25rem', xl: '1.75rem', full: '9999px' },
   shadow: {
-    soft: '0 8px 24px -8px rgba(255, 107, 107, 0.18), 0 2px 6px -2px rgba(31, 27, 22, 0.06)',
-    pressed: 'inset 0 2px 6px rgba(31, 27, 22, 0.12)',
-    card: '0 4px 16px -4px rgba(31, 27, 22, 0.08)',
-    lift: '0 12px 32px -10px rgba(31, 27, 22, 0.18)',
+    soft: 'var(--shadow-soft)',
+    pressed: 'var(--shadow-pressed)',
+    card: 'var(--shadow-card)',
+    lift: 'var(--shadow-lift)',
   },
   motion: {
     fast: '150ms',

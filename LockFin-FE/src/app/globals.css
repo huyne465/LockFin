@@ -3,15 +3,104 @@
 @tailwind utilities;
 
 @layer base {
-  :root {
+  /* ----------------------------------------------------------------------
+     Theme palettes. Colors are stored as raw "R G B" channels so Tailwind's
+     `rgb(var(--x) / <alpha-value>)` mapping (design-tokens.ts) lets every
+     `/opacity` modifier keep working. Light = original Soft UI; dark = the
+     "Midnight Pop" refresh.
+     ---------------------------------------------------------------------- */
+  :root, [data-theme='light'] {
     color-scheme: light;
+
+    --c-primary: 255 107 107;
+    --c-primary-hover: 255 82 82;
+    --c-secondary: 255 217 179;
+    --c-cta: 255 138 61;
+    --c-surface: 255 255 255;
+    --c-surface-muted: 255 246 242;
+    --c-background: 255 248 244;
+    --c-border: 241 227 216;
+    --c-text: 31 27 22;
+    --c-text-secondary: 91 82 73;
+    --c-text-muted: 138 128 120;
+    --c-text-inverse: 255 255 255;
+    --c-success: 43 182 115;
+    --c-danger: 230 57 70;
+    --c-warning: 244 162 97;
+    --c-info: 74 144 226;
+    --c-streak: 255 122 26;
+
+    --shadow-soft: 0 8px 24px -8px rgba(255, 107, 107, 0.18), 0 2px 6px -2px rgba(31, 27, 22, 0.06);
+    --shadow-pressed: inset 0 2px 6px rgba(31, 27, 22, 0.12);
+    --shadow-card: 0 4px 16px -4px rgba(31, 27, 22, 0.08);
+    --shadow-lift: 0 12px 32px -10px rgba(31, 27, 22, 0.18);
+
+    /* Ambient page glow — none in light. */
+    --app-bg-image: none;
+
+    /* Translucent surfaces (glass / polaroid). */
+    --glass-bg: rgba(255, 255, 255, 0.55);
+    --glass-border: rgba(255, 255, 255, 0.6);
+    --glass-dark-bg: rgba(20, 16, 14, 0.38);
+    --glass-dark-border: rgba(255, 255, 255, 0.16);
+    --glass-pill-bg: rgba(28, 22, 18, 0.45);
+    --glass-pill-border: rgba(255, 255, 255, 0.18);
+    --polaroid-bg: #ffffff;
+    --polaroid-border: rgba(31, 27, 22, 0.05);
+    --polaroid-shadow: 0 1px 1px rgba(31, 27, 22, 0.04), 0 12px 28px -14px rgba(31, 27, 22, 0.28);
   }
+
+  [data-theme='dark'] {
+    color-scheme: dark;
+
+    /* brand purple, separated from the thu/chi semantics */
+    --c-primary: 124 108 255;       /* #7C6CFF */
+    --c-primary-hover: 155 140 255; /* #9B8CFF */
+    --c-secondary: 35 37 47;        /* #23252F */
+    --c-cta: 124 108 255;
+    --c-surface: 21 22 30;          /* #15161E */
+    --c-surface-muted: 27 29 39;    /* #1B1D27 (card) */
+    --c-background: 11 12 17;        /* #0B0C11 (ink) */
+    --c-border: 42 44 54;           /* ≈ white .09 over card */
+    --c-text: 243 243 247;          /* #F3F3F7 */
+    --c-text-secondary: 166 168 182;/* #A6A8B6 */
+    --c-text-muted: 110 112 126;    /* #6E707E */
+    --c-text-inverse: 255 255 255;
+    --c-success: 52 224 161;        /* mint #34E0A1 — thu */
+    --c-danger: 255 111 111;        /* coral #FF6F6F — chi */
+    --c-warning: 255 178 62;        /* amber #FFB23E */
+    --c-info: 124 108 255;
+    --c-streak: 205 251 70;         /* lime #CDFB46 — gamification */
+
+    --shadow-soft: 0 18px 40px -20px rgba(0, 0, 0, 0.7);
+    --shadow-pressed: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+    --shadow-card: 0 10px 30px -14px rgba(0, 0, 0, 0.55);
+    --shadow-lift: 0 30px 60px -24px rgba(0, 0, 0, 0.85);
+
+    --app-bg-image:
+      radial-gradient(900px 520px at 14% -6%, rgba(124, 108, 255, 0.18), transparent 60%),
+      radial-gradient(720px 520px at 102% -2%, rgba(205, 251, 70, 0.07), transparent 55%);
+
+    --glass-bg: rgba(11, 12, 17, 0.6);
+    --glass-border: rgba(255, 255, 255, 0.09);
+    --glass-dark-bg: rgba(11, 12, 17, 0.55);
+    --glass-dark-border: rgba(255, 255, 255, 0.1);
+    --glass-pill-bg: rgba(20, 18, 16, 0.5);
+    --glass-pill-border: rgba(255, 255, 255, 0.12);
+    --polaroid-bg: rgb(27 29 39);
+    --polaroid-border: rgba(255, 255, 255, 0.055);
+    --polaroid-shadow: 0 18px 40px -20px rgba(0, 0, 0, 0.7);
+  }
+
   html, body {
     @apply bg-background text-text antialiased;
     font-family: 'Inter', system-ui, sans-serif;
   }
   body {
     min-height: 100dvh;
+    background-image: var(--app-bg-image);
+    background-attachment: fixed;
+    background-repeat: no-repeat;
   }
   button { @apply cursor-pointer; }
   :focus-visible { @apply outline-none ring-2 ring-primary/60 ring-offset-2 ring-offset-background; }
@@ -24,24 +113,24 @@
   .safe-top    { padding-top:  max(env(safe-area-inset-top), 0.5rem); }
   .numeric     { font-family: 'Plus Jakarta Sans', 'Inter', system-ui, sans-serif; font-variant-numeric: tabular-nums; }
 
-  /* Glassmorphism — frosted translucent surfaces */
+  /* Glassmorphism — frosted translucent surfaces (theme-aware). */
   .glass {
-    background: rgba(255, 255, 255, 0.55);
+    background: var(--glass-bg);
     backdrop-filter: blur(20px) saturate(160%);
     -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 1px solid var(--glass-border);
   }
   .glass-dark {
-    background: rgba(20, 16, 14, 0.38);
+    background: var(--glass-dark-bg);
     backdrop-filter: blur(18px) saturate(140%);
     -webkit-backdrop-filter: blur(18px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.16);
+    border: 1px solid var(--glass-dark-border);
   }
   .glass-pill {
-    background: rgba(28, 22, 18, 0.45);
+    background: var(--glass-pill-bg);
     backdrop-filter: blur(16px) saturate(140%);
     -webkit-backdrop-filter: blur(16px) saturate(140%);
-    border: 1px solid rgba(255, 255, 255, 0.18);
+    border: 1px solid var(--glass-pill-border);
   }
 }
 
@@ -72,14 +161,12 @@
 }
 
 @layer components {
-  /* Khung ảnh Polaroid: nền giấy trắng, viền mỏng, bóng đổ ấm. */
+  /* Khung ảnh Polaroid: nền giấy, viền mỏng, bóng đổ (theme-aware). */
   .polaroid {
-    background: #fff;
+    background: var(--polaroid-bg);
     border-radius: 1.1rem;
-    border: 1px solid rgba(31, 27, 22, 0.05);
-    box-shadow:
-      0 1px 1px rgba(31, 27, 22, 0.04),
-      0 12px 28px -14px rgba(31, 27, 22, 0.28);
+    border: 1px solid var(--polaroid-border);
+    box-shadow: var(--polaroid-shadow);
   }
 
   /* Bánh xe cuộn: thẻ ở giữa khung nhìn dựng thẳng & rõ nét, thẻ trên/dưới
