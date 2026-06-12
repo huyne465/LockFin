@@ -177,11 +177,22 @@ export class BudgetsRepository {
 
     const { data: posts, error: pErr } = await this.supabase.admin
       .from('posts')
-      .select('amount, category_id, created_at, categories(type)')
+      .select('id, amount, category_id, created_at, categories(type)')
       .eq('user_id', userId)
       .gte('created_at', earliest)
       .lt('created_at', latestEnd);
     if (pErr) throw pErr;
+
+    // `budgetId:postId` pairs the user opted out of — those posts skip that budget.
+    const coveringIds = covering.map((row) => (row as unknown as BudgetRow).id);
+    const { data: excl, error: eErr } = await this.supabase.admin
+      .from('post_budget_exclusions')
+      .select('post_id, budget_id')
+      .in('budget_id', coveringIds);
+    if (eErr) throw eErr;
+    const excluded = new Set(
+      (excl ?? []).map((e) => `${(e as { budget_id: string }).budget_id}:${(e as { post_id: string }).post_id}`),
+    );
 
     return covering.map((row) => {
       const r = row as unknown as BudgetRow & {
@@ -191,6 +202,7 @@ export class BudgetsRepository {
       let spent = 0;
       for (const post of posts ?? []) {
         const p = post as unknown as {
+          id: string;
           amount: number;
           category_id: string;
           created_at: string;
@@ -204,6 +216,7 @@ export class BudgetsRepository {
           const cat = Array.isArray(p.categories) ? p.categories[0] : p.categories;
           if (cat?.type !== 'EXPENSE') continue;
         }
+        if (excluded.has(`${r.id}:${p.id}`)) continue;
         spent += Number(p.amount);
       }
       const category = Array.isArray(r.categories) ? r.categories[0] ?? null : r.categories;

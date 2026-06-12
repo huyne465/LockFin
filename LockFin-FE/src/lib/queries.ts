@@ -86,6 +86,8 @@ export interface CreatePostInput {
   is_private?: boolean;
   /** Đích lưu: có ⇒ vào album đó; bỏ/null ⇒ lên pool (feed). */
   album_id?: string | null;
+  /** Budget IDs khoản này KHÔNG tính vào (user bỏ theo dõi). Bỏ trống ⇒ tính hết. */
+  excluded_budget_ids?: string[];
 }
 
 export function useCreatePost() {

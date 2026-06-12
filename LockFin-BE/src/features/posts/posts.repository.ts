@@ -43,7 +43,32 @@ export class PostsRepository {
       .select('*')
       .single();
     if (error) throw error;
-    return data as PostRow;
+    const post = data as PostRow;
+
+    if (dto.excluded_budget_ids?.length) {
+      await this.excludeFromBudgets(userId, post.id, dto.excluded_budget_ids);
+    }
+    return post;
+  }
+
+  /**
+   * Mark a post as not counting toward the given budgets. Only the caller's own
+   * budgets are honoured; foreign IDs are silently dropped so a bad client can't
+   * write junk rows.
+   */
+  private async excludeFromBudgets(userId: string, postId: string, budgetIds: string[]): Promise<void> {
+    const { data: owned, error: bErr } = await this.supabase.admin
+      .from('budgets')
+      .select('id')
+      .eq('user_id', userId)
+      .in('id', budgetIds);
+    if (bErr) throw bErr;
+
+    const rows = (owned ?? []).map((b) => ({ post_id: postId, budget_id: (b as { id: string }).id }));
+    if (rows.length === 0) return;
+
+    const { error } = await this.supabase.admin.from('post_budget_exclusions').insert(rows);
+    if (error) throw error;
   }
 
   /**

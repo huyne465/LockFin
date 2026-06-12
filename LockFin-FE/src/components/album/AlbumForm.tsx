@@ -8,6 +8,7 @@ import { useCreateAlbum, useUpdateAlbum } from '@/lib/queries';
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
+import { formatAmountInput, parseAmount } from '@/lib/format';
 import type { AlbumDetail, AlbumSummary } from '@/lib/types';
 import { PostPicker } from './PostPicker';
 
@@ -32,7 +33,7 @@ export function AlbumForm({ album, onClose }: { album?: AlbumSummary | AlbumDeta
   const [name, setName] = useState(album?.name ?? '');
   const [description, setDescription] = useState(album?.description ?? '');
   const [isPublic, setIsPublic] = useState(album?.is_public ?? false);
-  const [budget, setBudget] = useState(album?.budget_amount != null ? String(album.budget_amount) : '');
+  const [budget, setBudget] = useState(album?.budget_amount != null ? formatAmountInput(String(album.budget_amount)) : '');
   const [startDate, setStartDate] = useState(album?.start_date ?? '');
   const [endDate, setEndDate] = useState(album?.end_date ?? '');
   const [postIds, setPostIds] = useState<string[]>([]);
@@ -42,7 +43,7 @@ export function AlbumForm({ album, onClose }: { album?: AlbumSummary | AlbumDeta
   async function onSubmit() {
     const trimmed = name.trim();
     if (!trimmed) return push('Đặt tên album nhé.', 'error');
-    const budgetAmount = budget ? Number(budget.replace(/[^\d]/g, '')) : null;
+    const budgetAmount = budget ? parseAmount(budget) : null;
     if (budgetAmount != null && budgetAmount <= 0) return push('Ngân sách phải lớn hơn 0.', 'error');
     if (startDate && endDate && endDate < startDate) return push('Ngày kết thúc phải sau ngày bắt đầu.', 'error');
 
@@ -131,7 +132,7 @@ export function AlbumForm({ album, onClose }: { album?: AlbumSummary | AlbumDeta
           inputMode="numeric"
           placeholder="Để trống = không đặt"
           value={budget}
-          onChange={(e) => setBudget(e.target.value.replace(/[^\d]/g, ''))}
+          onChange={(e) => setBudget(formatAmountInput(e.target.value))}
           className="numeric text-lg font-semibold"
         />
 

@@ -14,6 +14,7 @@ import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { Input } from '@/components/ui/Input';
 import { Skeleton } from '@/components/ui/Skeleton';
 import { useToast } from '@/components/ui/Toast';
+import { formatAmountInput, parseAmount } from '@/lib/format';
 import type { BudgetPeriod, BudgetStatus } from '@/lib/types';
 
 const PERIODS: { value: BudgetPeriod; label: string }[] = [
@@ -42,7 +43,7 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
 
   const [period, setPeriod] = useState<BudgetPeriod>(budget?.period_type ?? 'MONTH');
   const [categoryId, setCategoryId] = useState<string | null>(budget?.category_id ?? null);
-  const [amount, setAmount] = useState(budget ? String(budget.amount) : '');
+  const [amount, setAmount] = useState(budget ? formatAmountInput(String(budget.amount)) : '');
 
   const expenseCats = useMemo(
     () => (categories ?? []).filter((c) => c.type === 'EXPENSE'),
@@ -52,7 +53,7 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
   const saving = upsert.isPending || update.isPending || remove.isPending;
 
   async function onSubmit() {
-    const amt = Number(amount.replace(/[^\d]/g, ''));
+    const amt = parseAmount(amount);
     if (!amt || amt <= 0) return push('Nhập hạn mức hợp lệ nhé.', 'error');
 
     try {
@@ -170,7 +171,7 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
           inputMode="numeric"
           placeholder="0"
           value={amount}
-          onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ''))}
+          onChange={(e) => setAmount(formatAmountInput(e.target.value))}
           className="numeric text-xl font-semibold"
         />
 

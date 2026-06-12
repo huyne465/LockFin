@@ -1,5 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
 import {
+  ArrayUnique,
+  IsArray,
   IsBoolean,
   IsNumber,
   IsOptional,
@@ -44,4 +46,16 @@ export class CreatePostDto {
   @ValidateIf((_o, v) => v !== null && v !== undefined)
   @IsUUID()
   album_id?: string | null;
+
+  @ApiProperty({
+    required: false,
+    type: [String],
+    description:
+      'Budget IDs khoản này KHÔNG tính vào (user bỏ theo dõi ở các mức đó). Bỏ trống ⇒ tính vào mọi budget phủ category + thời gian.',
+  })
+  @IsOptional()
+  @IsArray()
+  @ArrayUnique()
+  @IsUUID('all', { each: true })
+  excluded_budget_ids?: string[];
 }

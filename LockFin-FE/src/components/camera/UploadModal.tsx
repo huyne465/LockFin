@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { ImageIcon, Lock, LockOpen, X } from 'lucide-react';
+import { ImageIcon, Lock, LockOpen, Plus, X } from 'lucide-react';
 import { clsx } from 'clsx';
 import { createSupabaseBrowser } from '@/lib/supabase/client';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
@@ -10,7 +10,7 @@ import { useAlbums, useBudgets, useCategories, useCreatePost, useProfile } from 
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { useToast } from '@/components/ui/Toast';
-import { formatVND } from '@/lib/format';
+import { formatVND, formatAmountInput, parseAmount } from '@/lib/format';
 import type { BudgetPeriod, Category, CategoryType } from '@/lib/types';
 
 const TYPE_LABEL: Record<CategoryType, string> = {
@@ -29,6 +29,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
   const createPost = useCreatePost();
 
   const [categoryId, setCategoryId] = useState<string | null>(null);
+  const [excluded, setExcluded] = useState<Set<string>>(new Set());
   const [amount, setAmount] = useState('');
   const [note, setNote] = useState('');
   const [isPrivate, setIsPrivate] = useState(false);
@@ -41,7 +42,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
     return g;
   }, [categories]);
 
-  const amt = Number(amount.replace(/[^\d]/g, '')) || 0;
+  const amt = parseAmount(amount);
   const selectedCat = categories?.find((c) => c.id === categoryId) ?? null;
   const selectedAlbum = useMemo(
     () => albums?.find((a) => a.id === albumId) ?? null,
@@ -63,10 +64,27 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
       );
   }, [budgets, categoryId, selectedCat]);
 
+  // Đổi category ⇒ danh sách quỹ ảnh hưởng khác đi, bỏ lựa chọn loại trừ cũ.
+  function selectCategory(id: string) {
+    setCategoryId(id);
+    setExcluded(new Set());
+  }
+
+  function toggleExclude(id: string) {
+    setExcluded((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
   async function onSubmit() {
     if (!categoryId) return push('Chọn category trước nhé', 'error');
-    const amt = Number(amount.replace(/[^\d.]/g, ''));
+    const amt = parseAmount(amount);
     if (!amt || amt <= 0) return push('Nhập số tiền hợp lệ', 'error');
+    // Chỉ gửi id quỹ thực sự đang ảnh hưởng (tránh id thừa từ category trước).
+    const excluded_budget_ids = affected.filter((b) => excluded.has(b.id)).map((b) => b.id);
 
     setUploading(true);
     try {
@@ -86,6 +104,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
         note: note.trim() || undefined,
         is_private: isPrivate,
         album_id: albumId ?? null,
+        excluded_budget_ids: excluded_budget_ids.length ? excluded_budget_ids : undefined,
       });
 
       if (albumId) {
@@ -131,7 +150,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
           inputMode="numeric"
           placeholder="0"
           value={amount}
-          onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ''))}
+          onChange={(e) => setAmount(formatAmountInput(e.target.value))}
           className="mt-1 numeric text-xl font-semibold"
         />
 
@@ -144,7 +163,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
                   {grouped[t].map((c) => (
                     <button
                       key={c.id}
-                      onClick={() => setCategoryId(c.id)}
+                      onClick={() => selectCategory(c.id)}
                       className={clsx(
                         'flex shrink-0 items-center gap-2 rounded-full border px-3 py-2 transition-all duration-fast',
                         categoryId === c.id
@@ -169,24 +188,47 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
             </p>
             <ul className="space-y-1.5">
               {affected.map((b) => {
+                const isExcluded = excluded.has(b.id);
                 const after = b.remaining - amt; // số còn lại sau khi trừ khoản đang nhập
                 const over = after < 0;
                 const name = b.category?.name ?? 'Tổng chi tiêu';
-                const icon = b.category?.icon ?? '💰';
+                const icon = b.category?.icon ?? null;
                 return (
                   <li key={b.id} className="flex items-center justify-between gap-2 text-sm">
-                    <span className="flex min-w-0 items-center gap-1.5 text-text">
+                    <span
+                      className={clsx(
+                        'flex min-w-0 items-center gap-1.5',
+                        isExcluded ? 'text-text-muted line-through' : 'text-text',
+                      )}
+                    >
                       <CategoryIcon icon={icon} />
                       <span className="truncate">{name}</span>
                       <span className="shrink-0 text-text-muted">· {PERIOD_LABEL[b.period_type]}</span>
                     </span>
-                    <span className={clsx('numeric shrink-0 font-medium', over ? 'text-danger' : 'text-text-secondary')}>
-                      {over ? `⚠️ Vượt ${formatVND(-after)}` : `còn ${formatVND(after)}`}
+                    <span className="flex shrink-0 items-center gap-2">
+                      {isExcluded ? (
+                        <span className="text-xs text-text-muted">không trừ</span>
+                      ) : (
+                        <span className={clsx('numeric font-medium', over ? 'text-danger' : 'text-text-secondary')}>
+                          {over ? `Vượt ${formatVND(-after)}` : `còn ${formatVND(after)}`}
+                        </span>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => toggleExclude(b.id)}
+                        aria-label={isExcluded ? `Theo dõi lại ${name}` : `Bỏ theo dõi ${name}`}
+                        className="rounded-md p-1 text-text-muted transition-colors duration-fast hover:bg-surface hover:text-text"
+                      >
+                        {isExcluded ? <Plus className="h-4 w-4" /> : <X className="h-4 w-4" />}
+                      </button>
                     </span>
                   </li>
                 );
               })}
             </ul>
+            {excluded.size > 0 && (
+              <p className="mt-2 text-xs text-text-muted">Quỹ gạch ngang sẽ không bị trừ khoản này.</p>
+            )}
           </div>
         )}
 
