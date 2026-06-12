@@ -191,7 +191,7 @@ export function UploadModal({ blob, previewUrl, onClose }: { blob: Blob; preview
                 const isExcluded = excluded.has(b.id);
                 const after = b.remaining - amt; // số còn lại sau khi trừ khoản đang nhập
                 const over = after < 0;
-                const name = b.category?.name ?? 'Tổng chi tiêu';
+                const name = b.name?.trim() || b.category?.name || 'Tổng chi tiêu';
                 const icon = b.category?.icon ?? null;
                 return (
                   <li key={b.id} className="flex items-center justify-between gap-2 text-sm">
