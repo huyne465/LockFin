@@ -5,9 +5,9 @@ import { Trash2, X, CircleDollarSign } from 'lucide-react';
 import { clsx } from 'clsx';
 import {
   useCategories,
+  useCreateBudget,
   useDeleteBudget,
   useUpdateBudget,
-  useUpsertBudget,
 } from '@/lib/queries';
 import { Button } from '@/components/ui/Button';
 import { CategoryIcon } from '@/components/ui/CategoryIcon';
@@ -37,35 +37,45 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
   const isEdit = !!budget;
   const push = useToast((s) => s.push);
   const { data: categories, isLoading: catsLoading } = useCategories();
-  const upsert = useUpsertBudget();
+  const create = useCreateBudget();
   const update = useUpdateBudget();
   const remove = useDeleteBudget();
 
   const [period, setPeriod] = useState<BudgetPeriod>(budget?.period_type ?? 'MONTH');
   const [categoryId, setCategoryId] = useState<string | null>(budget?.category_id ?? null);
   const [amount, setAmount] = useState(budget ? formatAmountInput(String(budget.amount)) : '');
+  const [name, setName] = useState(budget?.name ?? '');
 
   const expenseCats = useMemo(
     () => (categories ?? []).filter((c) => c.type === 'EXPENSE'),
     [categories],
   );
 
-  const saving = upsert.isPending || update.isPending || remove.isPending;
+  const saving = create.isPending || update.isPending || remove.isPending;
+
+  // Gợi ý tên = tên category đang chọn (mặc định khi bỏ trống).
+  const selectedCatName = isEdit
+    ? budget!.category?.name ?? 'Tổng chi tiêu'
+    : categoryId
+      ? expenseCats.find((c) => c.id === categoryId)?.name ?? 'Tổng chi tiêu'
+      : 'Tổng chi tiêu';
 
   async function onSubmit() {
     const amt = parseAmount(amount);
     if (!amt || amt <= 0) return push('Nhập hạn mức hợp lệ nhé.', 'error');
+    const trimmedName = name.trim();
 
     try {
       if (isEdit) {
-        await update.mutateAsync({ id: budget!.id, amount: amt });
-        push('Đã cập nhật hạn mức', 'success');
+        await update.mutateAsync({ id: budget!.id, amount: amt, name: trimmedName || null });
+        push('Đã cập nhật ngân sách', 'success');
       } else {
-        await upsert.mutateAsync({
+        await create.mutateAsync({
           category_id: categoryId,
           period_type: period,
           period_start: todayIso(),
           amount: amt,
+          name: trimmedName || null,
         });
         push('Đã đặt ngân sách', 'success');
       }
@@ -165,6 +175,16 @@ export function BudgetForm({ budget, onClose }: { budget?: BudgetStatus; onClose
             {PERIODS.find((p) => p.value === budget!.period_type)?.label}
           </p>
         )}
+
+        <label className="mb-1 mt-5 block text-sm font-medium text-text-secondary">
+          Tên ngân sách <span className="text-text-muted">(tuỳ chọn)</span>
+        </label>
+        <Input
+          placeholder={selectedCatName}
+          maxLength={60}
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+        />
 
         <label className="mb-1 mt-5 block text-sm font-medium text-text-secondary">Hạn mức (VND)</label>
         <Input

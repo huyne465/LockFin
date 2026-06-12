@@ -10,6 +10,7 @@ export interface BudgetStatus {
   period_type: BudgetPeriod;
   period_start: string;
   amount: number;
+  name: string | null;
   category: { id: string; name: string; icon: string | null; color_hex: string | null } | null;
   spent: number;
   remaining: number;
@@ -40,20 +41,20 @@ export class BudgetsService {
     if (categoryId) await this.assertCategoryOwned(userId, categoryId);
 
     const period_start = normalizePeriodStart(dto.period_type, dto.period_start);
-    await this.repo.upsert(userId, {
+    const created = await this.repo.create(userId, {
       category_id: categoryId,
       period_type: dto.period_type,
       period_start,
       amount: dto.amount,
+      name: dto.name?.trim() || null,
     });
 
     // Re-read through the spend pipeline so the response carries fresh spent/remaining.
+    // Match on the new row's id — nhiều budget có thể trùng category+kỳ.
     const date = todayIso();
     const onDate = period_start <= date && date < periodEnd(dto.period_type, period_start) ? date : period_start;
-    const status = (await this.statusForDate(userId, onDate)).find(
-      (b) => b.category_id === categoryId && b.period_type === dto.period_type && b.period_start === period_start,
-    );
-    if (!status) throw new NotFoundException('Budget not found after upsert');
+    const status = (await this.statusForDate(userId, onDate)).find((b) => b.id === created.id);
+    if (!status) throw new NotFoundException('Budget not found after create');
     return status;
   }
 
@@ -64,8 +65,16 @@ export class BudgetsService {
     return filtered.map(toStatus);
   }
 
-  async updateAmount(userId: string, id: string, amount: number): Promise<BudgetStatus> {
-    const updated = await this.repo.updateAmount(userId, id, amount);
+  async update(
+    userId: string,
+    id: string,
+    patch: { amount?: number; name?: string | null },
+  ): Promise<BudgetStatus> {
+    const updated = await this.repo.update(userId, id, {
+      amount: patch.amount,
+      // chuỗi rỗng ⇒ xoá tên (về null); undefined ⇒ giữ nguyên
+      name: patch.name === undefined ? undefined : patch.name?.trim() || null,
+    });
     if (!updated) throw new NotFoundException('Budget not found');
     // Surface the recomputed spend for the budget's own period.
     const onDate = updated.period_start <= todayIso() && todayIso() < periodEnd(updated.period_type, updated.period_start)
@@ -126,6 +135,7 @@ function toStatus(row: BudgetWithSpent): BudgetStatus {
     period_type: row.period_type,
     period_start: row.period_start,
     amount,
+    name: row.name,
     category: row.category,
     spent,
     remaining,

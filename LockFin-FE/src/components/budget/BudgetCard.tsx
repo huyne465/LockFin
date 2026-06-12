@@ -34,7 +34,8 @@ const PCT = {
 
 export function BudgetCard({ budget, onEdit }: { budget: BudgetStatus; onEdit: (b: BudgetStatus) => void }) {
   const t = tone(budget);
-  const name = budget.category?.name ?? 'Tổng chi tiêu';
+  const categoryName = budget.category?.name ?? 'Tổng chi tiêu';
+  const name = budget.name?.trim() || categoryName;
   const icon = budget.category?.icon ?? '💰';
   const pct = Math.max(0, Math.min(1, budget.percent)); // clamp chỉ để vẽ thanh
 
@@ -47,7 +48,12 @@ export function BudgetCard({ budget, onEdit }: { budget: BudgetStatus; onEdit: (
       <div className="flex items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-2.5">
           <CategoryIcon icon={icon} className="text-lg" />
-          <span className="truncate font-semibold text-text">{name}</span>
+          <div className="min-w-0">
+            <span className="block truncate font-semibold text-text">{name}</span>
+            {name !== categoryName && (
+              <span className="block truncate text-xs text-text-muted">{categoryName}</span>
+            )}
+          </div>
         </div>
         <span className={clsx('numeric shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold', PILL[t])}>
           {budget.is_over ? `Vượt ${formatVND(-budget.remaining)}` : `Còn ${formatVND(budget.remaining)}`}

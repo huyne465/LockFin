@@ -4,8 +4,10 @@ import {
   IsNumber,
   IsOptional,
   IsPositive,
+  IsString,
   IsUUID,
   Matches,
+  MaxLength,
   ValidateIf,
 } from 'class-validator';
 
@@ -35,4 +37,16 @@ export class CreateBudgetDto {
   @IsNumber({ maxDecimalPlaces: 2 })
   @IsPositive()
   amount!: number;
+
+  @ApiProperty({
+    required: false,
+    nullable: true,
+    example: 'Cà phê công việc',
+    description: 'Tên tự đặt cho ngân sách. Bỏ trống ⇒ hiển thị theo category.',
+  })
+  @IsOptional()
+  @ValidateIf((_o, v) => v !== null && v !== undefined)
+  @IsString()
+  @MaxLength(60)
+  name?: string | null;
 }

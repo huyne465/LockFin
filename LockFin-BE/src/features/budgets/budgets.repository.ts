@@ -9,6 +9,7 @@ export interface BudgetRow {
   period_type: BudgetPeriod;
   period_start: string; // 'YYYY-MM-DD'
   amount: number;
+  name: string | null; // tên tự đặt; null ⇒ hiển thị theo category
   created_at: string;
   updated_at: string;
 }
@@ -33,26 +34,31 @@ export class BudgetsRepository {
   constructor(private readonly supabase: SupabaseService) {}
 
   /**
-   * Insert or overwrite the budget for (user, category|total, period_type, period_start).
+   * Create a new budget for (user, category|total, period_type, period_start).
+   * Mỗi lần "đặt ngân sách" là một dòng mới — không còn ghi đè theo natural key,
+   * nên user có thể có nhiều budget cùng category+kỳ, phân biệt bằng `name`.
    * `period_start` must already be normalised to the start of the period.
    */
-  async upsert(
+  async create(
     userId: string,
-    input: { category_id: string | null; period_type: BudgetPeriod; period_start: string; amount: number },
+    input: {
+      category_id: string | null;
+      period_type: BudgetPeriod;
+      period_start: string;
+      amount: number;
+      name: string | null;
+    },
   ): Promise<BudgetRow> {
     const { data, error } = await this.supabase.admin
       .from(this.TABLE)
-      .upsert(
-        {
-          user_id: userId,
-          category_id: input.category_id,
-          period_type: input.period_type,
-          period_start: input.period_start,
-          amount: input.amount,
-          updated_at: new Date().toISOString(),
-        },
-        { onConflict: 'user_id,category_id,period_type,period_start' },
-      )
+      .insert({
+        user_id: userId,
+        category_id: input.category_id,
+        period_type: input.period_type,
+        period_start: input.period_start,
+        amount: input.amount,
+        name: input.name,
+      })
       .select('*')
       .single();
     if (error) throw error;
@@ -70,10 +76,17 @@ export class BudgetsRepository {
     return (data as BudgetRow) ?? null;
   }
 
-  async updateAmount(userId: string, id: string, amount: number): Promise<BudgetRow | null> {
+  async update(
+    userId: string,
+    id: string,
+    patch: { amount?: number; name?: string | null },
+  ): Promise<BudgetRow | null> {
+    const fields: Record<string, unknown> = { updated_at: new Date().toISOString() };
+    if (patch.amount !== undefined) fields.amount = patch.amount;
+    if (patch.name !== undefined) fields.name = patch.name;
     const { data, error } = await this.supabase.admin
       .from(this.TABLE)
-      .update({ amount, updated_at: new Date().toISOString() })
+      .update(fields)
       .eq('id', id)
       .eq('user_id', userId)
       .select('*')

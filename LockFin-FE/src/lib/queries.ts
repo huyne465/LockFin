@@ -221,17 +221,19 @@ export const useBudgets = (date = todayIso()) =>
     queryFn: () => api<BudgetStatus[]>(`/budgets?date=${date}`),
   });
 
-export interface UpsertBudgetInput {
+export interface CreateBudgetInput {
   category_id?: string | null;
   period_type: BudgetPeriod;
   period_start: string;   // ngày bất kỳ trong kỳ, BE tự chuẩn hoá
   amount: number;
+  name?: string | null;   // tên tự đặt (tuỳ chọn)
 }
 
-export function useUpsertBudget() {
+/** Mỗi lần gọi tạo MỘT budget mới (không còn ghi đè theo category+kỳ). */
+export function useCreateBudget() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: (body: UpsertBudgetInput) =>
+    mutationFn: (body: CreateBudgetInput) =>
       api<BudgetStatus>('/budgets', { method: 'POST', body: JSON.stringify(body) }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['budgets'] }),
   });
@@ -240,8 +242,8 @@ export function useUpsertBudget() {
 export function useUpdateBudget() {
   const qc = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, amount }: { id: string; amount: number }) =>
-      api<BudgetStatus>(`/budgets/${id}`, { method: 'PATCH', body: JSON.stringify({ amount }) }),
+    mutationFn: ({ id, ...patch }: { id: string; amount?: number; name?: string | null }) =>
+      api<BudgetStatus>(`/budgets/${id}`, { method: 'PATCH', body: JSON.stringify(patch) }),
     onSuccess: () => qc.invalidateQueries({ queryKey: ['budgets'] }),
   });
 }

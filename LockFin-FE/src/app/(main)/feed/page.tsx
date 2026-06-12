@@ -10,6 +10,7 @@ import { CategoryIcon } from '@/components/ui/CategoryIcon';
 import { formatRelative, formatVND } from '@/lib/format';
 import { EmptyState } from '@/components/ui/EmptyState';
 import { Skeleton } from '@/components/ui/Skeleton';
+import { SmoothImage } from '@/components/ui/SmoothImage';
 import { PostReactions } from '@/components/post/PostReactions';
 
 export default function FeedPage() {
@@ -107,9 +108,12 @@ export default function FeedPage() {
           const initial = authorName?.[0]?.toUpperCase() ?? '?';
           return (
             <li key={p.id} className="feed-card-spin polaroid p-2.5 pb-3.5">
-              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[0.6rem] bg-black">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={p.photo_url} alt={p.note ?? p.categories.name} className="h-full w-full object-cover" />
+              <div className="relative aspect-[4/5] w-full overflow-hidden rounded-[0.6rem]">
+                <SmoothImage
+                  src={p.photo_url}
+                  alt={p.note ?? p.categories.name}
+                  className="h-full w-full"
+                />
 
                 {/* Tác giả */}
                 <div className="glass-pill absolute left-3 top-3 flex items-center gap-1.5 rounded-full py-1 pl-1 pr-2.5 text-text-inverse">

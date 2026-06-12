@@ -40,7 +40,7 @@ export class BudgetsController {
     @Param('id', ParseUUIDPipe) id: string,
     @Body() dto: UpdateBudgetDto,
   ) {
-    return this.service.updateAmount(user.id, id, dto.amount);
+    return this.service.update(user.id, id, { amount: dto.amount, name: dto.name });
   }
 
   @Delete(':id')

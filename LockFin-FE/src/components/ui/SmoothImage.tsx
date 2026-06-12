@@ -36,7 +36,15 @@ export function SmoothImage({
 
   useEffect(() => {
     setLoaded(false);
-    if (ref.current?.complete) setLoaded(true);
+    const img = ref.current;
+    if (!img) return;
+    let alive = true;
+    // decode() resolve khi bitmap đã sẵn sàng để paint — khác onLoad (chỉ báo
+    // tải xong bytes). Chờ decode mới fade-in để ảnh lớn vừa chụp/upload không
+    // chớp đen lúc nền tối lộ ra trước khi pixel kịp vẽ.
+    img.decode().then(() => alive && setLoaded(true))
+      .catch(() => alive && img.complete && setLoaded(true)); // ảnh lỗi vẫn thoát skeleton
+    return () => { alive = false; };
   }, [src]);
 
   if (!src) {
@@ -58,7 +66,6 @@ export function SmoothImage({
         ref={ref}
         src={src}
         alt={alt}
-        onLoad={() => setLoaded(true)}
         className={clsx(
           'relative h-full w-full transition-opacity duration-500 ease-out',
           loaded ? 'opacity-100' : 'opacity-0',

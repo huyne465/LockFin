@@ -86,6 +86,7 @@ export interface BudgetStatus {
   period_type: BudgetPeriod;
   period_start: string;     // 'YYYY-MM-DD'
   amount: number;
+  name: string | null;      // tên tự đặt; null ⇒ hiển thị theo category
   category: { id: string; name: string; icon: string; color_hex: string } | null; // null = tổng
   spent: number;
   remaining: number;        // có thể âm khi vượt
