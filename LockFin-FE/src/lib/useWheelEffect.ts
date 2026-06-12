@@ -41,6 +41,13 @@ export function useWheelEffect(ref: RefObject<HTMLElement | null>, count: number
         : { top: 0, height: window.innerHeight };
       const mid = view.top + view.height / 2;
 
+      // The tilt foreshortens each card, but perspective also pushes its leading
+      // (top) edge toward the viewer — on tall cards that edge can creep over the
+      // neighbour above and cover its reaction row. Ease the angle off on short
+      // viewports (small phones), where a card fills most of the screen and the
+      // encroachment is largest.
+      const maxTilt = view.height < 720 ? 22 : 32;
+
       const cards = wheel.children;
       for (let i = 0; i < cards.length; i++) {
         const el = cards[i] as HTMLElement;
@@ -56,8 +63,12 @@ export function useWheelEffect(ref: RefObject<HTMLElement | null>, count: number
         const t = abs <= DEAD_ZONE ? 0 : (abs - DEAD_ZONE) / (1 - DEAD_ZONE);
         const signed = Math.sign(p) * t;
         const tilt = (i % 2 === 0 ? 3.5 : -3.5) * signed;
-        el.style.transform = `rotateX(${36 * signed}deg) rotateZ(${tilt}deg) scale(${1 - 0.18 * t})`;
+        el.style.transform = `rotateX(${maxTilt * signed}deg) rotateZ(${tilt}deg) scale(${1 - 0.18 * t})`;
         el.style.opacity = `${1 - 0.7 * t}`;
+        // The upright, most-centred card must stack above its tilted neighbours so
+        // a card creeping up from below never paints over (and blocks taps on) its
+        // reaction row. Closer to centre (smaller abs) = higher in the stack.
+        el.style.zIndex = `${100 - Math.round(abs * 100)}`;
       }
     };
 

@@ -100,7 +100,7 @@ export default function FeedPage() {
         <EmptyState title="Chưa có post nào" hint="Chụp ảnh chi tiêu đầu tiên, hoặc kết bạn để xem feed của bạn bè!" />
       )}
 
-      <ul ref={wheel} className="feed-wheel space-y-6 px-4 py-4">
+      <ul ref={wheel} className="feed-wheel space-y-8 px-4 py-4 sm:space-y-6">
         {posts.map((p) => {
           const isIncome = p.categories.type === 'INCOME';
           const authorName = p.profiles.display_name?.trim() || p.profiles.username;

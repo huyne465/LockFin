@@ -12,13 +12,21 @@ function tone(b: BudgetStatus) {
   return 'success';
 }
 
+// Thanh tiến độ dày, bo tròn — đổ gradient nhạt dần để thấy rõ trạng thái.
 const BAR = {
-  success: 'bg-success',
-  warning: 'bg-warning',
-  danger: 'bg-danger',
+  success: 'bg-gradient-to-r from-success to-success/70',
+  warning: 'bg-gradient-to-r from-warning to-warning/70',
+  danger: 'bg-gradient-to-r from-danger to-danger/70',
 } as const;
 
-const TEXT = {
+// Pill "còn lại / vượt" — nền tint theo tông trạng thái.
+const PILL = {
+  success: 'bg-success/12 text-success',
+  warning: 'bg-warning/14 text-warning',
+  danger: 'bg-danger/16 text-danger',
+} as const;
+
+const PCT = {
   success: 'text-success',
   warning: 'text-warning',
   danger: 'text-danger',
@@ -34,31 +42,25 @@ export function BudgetCard({ budget, onEdit }: { budget: BudgetStatus; onEdit: (
     <button
       type="button"
       onClick={() => onEdit(budget)}
-      className="w-full rounded-2xl bg-surface px-4 py-3.5 text-left shadow-card transition-transform duration-fast active:scale-[0.99]"
+      className="w-full rounded-[22px] border border-border bg-surface px-4 py-4 text-left transition-transform duration-fast active:scale-[0.99]"
     >
       <div className="flex items-center justify-between gap-3">
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 items-center gap-2.5">
           <CategoryIcon icon={icon} className="text-lg" />
-          <span className="truncate font-medium text-text">{name}</span>
+          <span className="truncate font-semibold text-text">{name}</span>
         </div>
-        {budget.is_over ? (
-          <span className="numeric shrink-0 rounded-full bg-danger/10 px-2 py-0.5 text-xs font-semibold text-danger">
-            Vượt {formatVND(-budget.remaining)}
-          </span>
-        ) : (
-          <span className={clsx('numeric shrink-0 rounded-full px-2 py-0.5 text-xs font-semibold', `${TEXT[t]} bg-surface-muted`)}>
-            Còn {formatVND(budget.remaining)}
-          </span>
-        )}
+        <span className={clsx('numeric shrink-0 rounded-full px-2.5 py-1 text-xs font-semibold', PILL[t])}>
+          {budget.is_over ? `Vượt ${formatVND(-budget.remaining)}` : `Còn ${formatVND(budget.remaining)}`}
+        </span>
       </div>
 
-      <div className="mt-3 h-2 w-full overflow-hidden rounded-full bg-surface-muted">
+      <div className="mt-3.5 h-2.5 w-full overflow-hidden rounded-full bg-surface-muted">
         <div className={clsx('h-full rounded-full transition-all duration-base', BAR[t])} style={{ width: `${pct * 100}%` }} />
       </div>
 
-      <div className="mt-2 flex items-center justify-between text-xs text-text-muted">
-        <span className="numeric">{formatVND(budget.spent)} / {formatVND(budget.amount)}</span>
-        <span className="numeric">{Math.round(budget.percent * 100)}%</span>
+      <div className="mt-2.5 flex items-center justify-between text-xs">
+        <span className="numeric text-text-muted">{formatVND(budget.spent)} / {formatVND(budget.amount)}</span>
+        <span className={clsx('numeric font-semibold', PCT[t])}>{Math.round(budget.percent * 100)}%</span>
       </div>
     </button>
   );

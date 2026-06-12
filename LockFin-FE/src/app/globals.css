@@ -29,6 +29,8 @@
     --c-warning: 244 162 97;
     --c-info: 74 144 226;
     --c-streak: 255 122 26;
+    /* Accent đặt trên card brand (coral/purple). Sáng dùng trắng cho tương phản. */
+    --accent-on-brand: 255 255 255;
 
     --shadow-soft: 0 8px 24px -8px rgba(255, 107, 107, 0.18), 0 2px 6px -2px rgba(31, 27, 22, 0.06);
     --shadow-pressed: inset 0 2px 6px rgba(31, 27, 22, 0.12);
@@ -71,6 +73,7 @@
     --c-warning: 255 178 62;        /* amber #FFB23E */
     --c-info: 124 108 255;
     --c-streak: 205 251 70;         /* lime #CDFB46 — gamification */
+    --accent-on-brand: 205 251 70;  /* lime nổi trên card tím */
 
     --shadow-soft: 0 18px 40px -20px rgba(0, 0, 0, 0.7);
     --shadow-pressed: inset 0 2px 6px rgba(0, 0, 0, 0.5);
@@ -179,7 +182,17 @@
     perspective-origin: center;
   }
 
+  /* Category icons: bucket SVGs are hardcoded black, so we paint them via a CSS
+     mask with currentColor instead of <img>. One asset works in both themes and
+     can be tinted any colour by setting `color` on the element. */
+  .category-icon {
+    background-color: currentColor;
+    -webkit-mask: var(--cat-icon) center / contain no-repeat;
+            mask: var(--cat-icon) center / contain no-repeat;
+  }
+
   .feed-card-spin {
+    position: relative; /* lets useWheelEffect's z-index keep the centred card on top */
     transform-origin: center;
     backface-visibility: hidden;
     will-change: transform, opacity;

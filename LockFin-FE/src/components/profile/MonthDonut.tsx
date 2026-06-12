@@ -14,6 +14,9 @@ export function MonthDonut({ stats }: { stats: MonthStat[] }) {
   const tooltipStyle = dark
     ? { borderRadius: 12, border: '1px solid #2A2C36', background: '#1B1D27', color: '#F3F3F7' }
     : { borderRadius: 12, border: '1px solid #F1E3D8' };
+  // recharts gives each item/label its own inline colour, so contentStyle.color
+  // doesn't reach the text — set it explicitly or the label stays dark on dark.
+  const tooltipTextStyle = dark ? { color: '#F3F3F7' } : { color: '#1F1B16' };
   return (
     <div className="col-span-2 rounded-lg bg-surface p-5 shadow-soft">
       <div className="flex items-baseline justify-between">
@@ -29,6 +32,8 @@ export function MonthDonut({ stats }: { stats: MonthStat[] }) {
             <Tooltip
               formatter={(v: number, _name, p) => [formatVND(Number(v)), p?.payload?.category_name]}
               contentStyle={tooltipStyle}
+              itemStyle={tooltipTextStyle}
+              labelStyle={tooltipTextStyle}
             />
           </PieChart>
         </ResponsiveContainer>

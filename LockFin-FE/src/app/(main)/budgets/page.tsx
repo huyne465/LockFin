@@ -39,7 +39,7 @@ export default function BudgetsPage() {
         <Link
           href="/profile"
           aria-label="Quay lại"
-          className="flex h-11 w-11 items-center justify-center rounded-full text-text-secondary transition-transform duration-fast active:scale-90"
+          className="flex h-10 w-10 items-center justify-center rounded-full bg-surface-muted text-text-secondary transition-transform duration-fast active:scale-90"
         >
           <ArrowLeft className="h-5 w-5" />
         </Link>
@@ -47,7 +47,7 @@ export default function BudgetsPage() {
         <button
           type="button"
           onClick={() => setCreating(true)}
-          className="ml-auto flex items-center gap-1.5 rounded-full bg-primary px-3.5 py-2 text-sm font-medium text-text-inverse shadow-soft transition-transform duration-fast active:scale-95"
+          className="ml-auto flex items-center gap-1.5 rounded-full bg-gradient-to-br from-[rgb(var(--c-primary-hover))] to-[rgb(var(--c-primary))] px-3.5 py-2 text-sm font-semibold text-text-inverse shadow-[0_10px_24px_-10px_rgb(var(--c-primary)/0.8)] transition-transform duration-fast active:scale-95"
         >
           <Plus className="h-4 w-4" /> Đặt
         </button>
@@ -68,22 +68,27 @@ export default function BudgetsPage() {
           />
         )}
 
-        {/* Tổng quan — bao nhiêu hạn mức, bao nhiêu đang vượt */}
+        {/* Tổng quan — bao nhiêu hạn mức, bao nhiêu đang vượt. Card tint theo trạng thái. */}
         {!isLoading && !isEmpty && (
-          <div className="mt-4 flex items-center gap-3 rounded-2xl bg-surface px-4 py-3.5 shadow-card">
+          <div
+            className={clsx(
+              'mt-4 flex items-center gap-3.5 rounded-[20px] border px-4 py-4',
+              overCount > 0 ? 'border-danger/25 bg-danger/[0.08]' : 'border-success/25 bg-success/[0.08]',
+            )}
+          >
             <span
               className={clsx(
-                'flex h-10 w-10 shrink-0 items-center justify-center rounded-full',
-                overCount > 0 ? 'bg-danger/12 text-danger' : 'bg-success/12 text-success',
+                'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl',
+                overCount > 0 ? 'bg-danger/16 text-danger' : 'bg-success/16 text-success',
               )}
             >
-              {overCount > 0 ? <AlertTriangle className="h-5 w-5" /> : <CheckCircle2 className="h-5 w-5" />}
+              {overCount > 0 ? <AlertTriangle className="h-[22px] w-[22px]" /> : <CheckCircle2 className="h-[22px] w-[22px]" />}
             </span>
             <div className="min-w-0">
-              <p className="text-sm font-semibold text-text">
+              <p className="text-sm font-bold text-text">
                 {overCount > 0 ? `${overCount} hạn mức đang vượt` : 'Mọi hạn mức trong tầm kiểm soát'}
               </p>
-              <p className="numeric text-xs text-text-muted">{total} ngân sách đang theo dõi</p>
+              <p className="numeric mt-0.5 text-xs text-text-secondary">{total} ngân sách đang theo dõi</p>
             </div>
           </div>
         )}

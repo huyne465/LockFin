@@ -15,20 +15,21 @@ function iconSrc(icon: string): string | null {
 }
 
 /**
- * Renders a category icon: an <img> for bucket SVGs, otherwise the emoji as text.
- * Image size follows the surrounding font-size (1.15em), so pass the same text-*
- * class the old <span> used to keep it visually identical.
+ * Renders a category icon: a CSS-masked <span> for bucket SVGs, otherwise the
+ * emoji as text. The SVG is used as a mask painted with `currentColor`, so the
+ * icon inherits the surrounding text colour — correct in light & dark with no
+ * per-theme asset, and recolourable anywhere by setting `color` (e.g. a text-*
+ * class). Size follows the surrounding font-size (1.15em), so pass the same
+ * text-* class the old <span> used to keep it visually identical.
  */
 export function CategoryIcon({ icon, className }: { icon?: string | null; className?: string }) {
   const src = icon ? iconSrc(icon) : null;
   if (src) {
-    // eslint-disable-next-line @next/next/no-img-element
     return (
-      <img
-        src={src}
-        alt=""
+      <span
         aria-hidden
-        className={clsx('inline-block h-[1.15em] w-[1.15em] shrink-0 object-contain align-[-0.15em]', className)}
+        style={{ ['--cat-icon' as string]: `url("${src}")` }}
+        className={clsx('category-icon inline-block h-[1.15em] w-[1.15em] shrink-0 align-[-0.15em]', className)}
       />
     );
   }
